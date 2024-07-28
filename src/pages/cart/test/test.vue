@@ -1,5 +1,6 @@
 <script setup lang="ts">
 //
+import HomeGuess from '@/components/HomeGuess.vue'
 </script>
 
 <template>
@@ -78,6 +79,8 @@
         <button class="button">去登录</button>
       </navigator>
     </view>
+    <!-- 猜你喜欢 -->
+    <HomeGuess ref="guessRef"></HomeGuess>
     <!-- 底部占位空盒子 -->
     <view class="toolbar-height"></view>
   </scroll-view>
