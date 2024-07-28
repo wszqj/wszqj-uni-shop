@@ -7,7 +7,7 @@ import type { LoginResult } from '@/types/member'
 const login = async () => {
   // 调用接口
   let res = await loginAPI('16696520022')
-  uni.showToast()
+  loginSuccess(res.result)
 }
 
 // 登录成功，保存会员信息
