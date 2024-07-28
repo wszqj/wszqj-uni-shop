@@ -5,11 +5,10 @@ import HomeSwiper from '@/components/HomeSwiper.vue'
 import CategoryPanel from '@/pages/index/components/CategoryPanel.vue'
 import HotPanel from '@/pages/index/components/HotPanel.vue'
 import HomeGuess from '@/components/HomeGuess.vue'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { HomeGuessInstance } from '@/types/component'
 import type { Advertisement } from '@/types/home'
 import { getAdvertisementListAPI } from '@/api/home'
-import { onLoad } from '@dcloudio/uni-app'
 
 // 刷新动画是否显示
 const isTriggered = ref(false)
@@ -45,7 +44,7 @@ const getAdvertisementList = async () => {
 }
 
 // 页面加载
-onLoad(async () => {
+onMounted(async () => {
   isLoading.value = true
   await Promise.all([
     getAdvertisementList(),

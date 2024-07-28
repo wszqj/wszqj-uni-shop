@@ -34,11 +34,9 @@ export type ProfileDetail = BaseProfile & {
   birthday?: string
   /** 省市区 */
   fullLocation?: string
-  /** 职业 */
-  profession?: string
 }
 /** 性别 */
-export type Gender = '女' | '男'
+export type Gender = '女性' | '男性'
 
 // 修改个人信息 请求参数
 export type ProfileParams = Pick<

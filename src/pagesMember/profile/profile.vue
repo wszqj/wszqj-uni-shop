@@ -1,6 +1,116 @@
 <script setup lang="ts">
 // 获取屏幕边界到安全区域距离
+import { useMemberStore } from '@/stores'
+import type { ProfileDetail } from '@/types/member'
+import { ref } from 'vue'
+import { getProfileDetailAPI } from '@/api/user'
+import { onLoad } from '@dcloudio/uni-app'
+
+const baseImgUrl = 'http://localhost:8081'
 const { safeAreaInsets } = uni.getSystemInfoSync()
+// 用户信息
+const store = useMemberStore()
+// 用户信息，初始化用于用户信息的修改
+const profile = ref({} as ProfileDetail)
+
+const onAvatarChange = () => {
+  // 显示选择图片的提示
+  uni.showLoading({ title: '正在选择图片...' })
+
+  uni.chooseMedia({
+    count: 1,
+    mediaType: ['image'],
+    success: (res) => {
+      // 关闭加载提示
+      uni.hideLoading()
+
+      if (res.tempFiles.length === 0) {
+        uni.showToast({ icon: 'none', title: '未选择图片' })
+        return
+      }
+      // 本地路径
+      const { tempFilePath } = res.tempFiles[0]
+      // 显示上传进度提示
+      uni.showLoading({ title: '上传中...' })
+
+      uni.uploadFile({
+        url: '/common/upload',
+        name: 'file',
+        filePath: tempFilePath,
+        success: (res) => {
+          // 关闭加载提示
+          uni.hideLoading()
+
+          if (res.statusCode === 200) {
+            try {
+              const data = JSON.parse(res.data)
+
+              if (data.code === '0') {
+                const avatar = data.result
+
+                // 确保 profile 和 store.profile 非空
+                if (profile.value && store.profile) {
+                  // 更新头像数据
+                  profile.value.avatar = avatar
+                  store.profile.avatar = avatar
+
+                  uni.showToast({ icon: 'success', title: '上传成功' })
+                } else {
+                  uni.showToast({ icon: 'none', title: '更新头像失败' })
+                }
+              } else {
+                uni.showToast({ icon: 'error', title: data.msg || '上传失败' })
+              }
+            } catch (e) {
+              uni.showToast({ icon: 'error', title: '解析响应数据失败' })
+              console.error('解析响应数据失败:', e)
+            }
+          } else {
+            uni.showToast({ icon: 'error', title: '上传失败' })
+          }
+        },
+        fail: (err) => {
+          // 关闭加载提示
+          uni.hideLoading()
+
+          uni.showToast({ icon: 'error', title: '网络错误，请重试' })
+          console.error('上传失败:', err)
+        },
+      })
+    },
+    fail: (err) => {
+      uni.hideLoading()
+
+      uni.showToast({ icon: 'error', title: '选择图片失败，请重试' })
+      console.error('选择图片失败:', err)
+    },
+  })
+}
+
+// 查询用户信息
+const getProfileDetail = async () => {
+  // 获取用户信息
+  const res = await getProfileDetailAPI()
+  // 数据回显
+  profile.value = res.result
+}
+// 更新用户年龄
+const onBirthdayChange: UniHelper.DatePickerOnChange = (ev) => {
+  profile.value.birthday = ev.detail.value
+}
+// 更新城市信息
+const onFullLocationChange: UniHelper.RegionPickerOnChange = (ev) => {
+  // 更新前端数据
+  profile.value.fullLocation = ev.detail.value.join(' ')
+}
+// 提交修改
+const onSubmit = () => {
+  console.log(profile.value)
+}
+// 数据回显
+onLoad(() => {
+  getProfileDetail()
+})
 </script>
 
 <template>
@@ -13,8 +123,8 @@ const { safeAreaInsets } = uni.getSystemInfoSync()
     <!-- 头像 -->
     <view class="avatar">
       <view class="avatar-content">
-        <image class="image" src=" " mode="aspectFill" />
-        <text class="text">点击修改头像</text>
+        <image class="image" :src="baseImgUrl + profile?.avatar" mode="aspectFill" />
+        <text class="text" @tap="onAvatarChange">点击修改头像</text>
       </view>
     </view>
     <!-- 表单 -->
@@ -23,21 +133,21 @@ const { safeAreaInsets } = uni.getSystemInfoSync()
       <view class="form-content">
         <view class="form-item">
           <text class="label">账号</text>
-          <text class="account">账号名</text>
+          <text class="account">{{ profile?.account }}</text>
         </view>
         <view class="form-item">
           <text class="label">昵称</text>
-          <input class="input" type="text" placeholder="请填写昵称" value="" />
+          <input class="input" type="text" placeholder="请填写昵称" v-model="profile!.nickname" />
         </view>
         <view class="form-item">
           <text class="label">性别</text>
           <radio-group>
             <label class="radio">
-              <radio value="男" color="#27ba9b" :checked="true" />
+              <radio value="男" color="#27ba9b" :checked="profile?.gender === '男性'" />
               男
             </label>
             <label class="radio">
-              <radio value="女" color="#27ba9b" :checked="false" />
+              <radio value="女" color="#27ba9b" :checked="profile?.gender === '女性'" />
               女
             </label>
           </radio-group>
@@ -46,29 +156,31 @@ const { safeAreaInsets } = uni.getSystemInfoSync()
           <text class="label">生日</text>
           <picker
             class="picker"
+            :value="profile?.birthday"
             mode="date"
             start="1900-01-01"
             :end="new Date()"
-            value="2000-01-01"
+            @change="onBirthdayChange"
           >
-            <view v-if="false">2000-01-01</view>
+            <view v-if="profile?.birthday">{{ profile?.birthday }}</view>
             <view class="placeholder" v-else>请选择日期</view>
           </picker>
         </view>
         <view class="form-item">
           <text class="label">城市</text>
-          <picker class="picker" mode="region" :value="['广东省', '广州市', '天河区']">
-            <view v-if="false">广东省广州市天河区</view>
+          <picker
+            @change="onFullLocationChange"
+            class="picker"
+            mode="region"
+            :value="profile?.fullLocation?.split(',')"
+          >
+            <view v-if="profile?.fullLocation">{{ profile?.fullLocation }}</view>
             <view class="placeholder" v-else>请选择城市</view>
           </picker>
         </view>
-        <view class="form-item">
-          <text class="label">职业</text>
-          <input class="input" type="text" placeholder="请填写职业" value="" />
-        </view>
       </view>
       <!-- 提交按钮 -->
-      <button class="form-button">保 存</button>
+      <button class="form-button" @tap="onSubmit">保 存</button>
     </view>
   </view>
 </template>
@@ -82,7 +194,7 @@ page {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-image: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/order_bg.png);
+  background-color: #00c8a4;
   background-size: auto 420rpx;
   background-repeat: no-repeat;
 }

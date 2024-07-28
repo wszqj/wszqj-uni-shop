@@ -49,14 +49,17 @@ export const http = <T>(options: UniApp.RequestOptions) => {
               title: data.msg || '请求错误',
               icon: 'none',
             })
-            if (data.code === '401') {
-              // 用户未登录，清理用户信息，跳转登录界面
-              const memberStore = useMemberStore()
-              memberStore.clearProfile()
-              uni.navigateTo({ url: '/pages/login/login' })
-            }
             reject(data)
           }
+        } else if (res.statusCode === 401) {
+          uni.showToast({
+            title: '请登录',
+            icon: 'none',
+          })
+          // 用户未登录，清理用户信息，跳转登录界面
+          const memberStore = useMemberStore()
+          memberStore.clearProfile()
+          uni.navigateTo({ url: '/pages/login/login' })
         } else {
           // 其他错误信息，根据后端的数据返回进行提示
           uni.showToast({

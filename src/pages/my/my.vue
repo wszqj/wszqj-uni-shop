@@ -2,7 +2,7 @@
 // 获取屏幕边界到安全区域距离
 import HomeGuess from '@/components/HomeGuess.vue'
 import { useMemberStore } from '@/stores'
-import { baseImgUrl } from '@/constants'
+const baseImgUrl = 'http://localhost:8081'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 // 订单选项

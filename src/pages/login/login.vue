@@ -15,6 +15,7 @@ const loginSuccess = (profile: LoginResult) => {
   const memberStore = useMemberStore()
   // 保存会员信息
   memberStore.setProfile(profile)
+  console.log(profile)
   // 提示
   uni.showToast({ icon: 'success', title: '登陆成功' })
   //  延迟任务
