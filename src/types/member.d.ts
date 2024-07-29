@@ -39,11 +39,7 @@ export type ProfileDetail = BaseProfile & {
 export type Gender = '女性' | '男性'
 
 // 修改个人信息 请求参数
-export type ProfileParams = Pick<
-  ProfileDetail,
-  'nickname' | 'gender' | 'birthday' | 'profession'
-> & {
-  provinceCode?: string
-  cityCode?: string
-  countyCode?: string
+export type ProfileParams = Pick<ProfileDetail, 'nickname' | 'gender' | 'birthday'> & {
+  /** 省市区 */
+  fullLocation: string
 }

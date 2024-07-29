@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // 获取屏幕边界到安全区域距离
 import { useMemberStore } from '@/stores'
-import type { ProfileDetail } from '@/types/member'
+import type { ProfileDetail, ProfileParams } from '@/types/member'
 import { ref } from 'vue'
-import { getProfileDetailAPI } from '@/api/user'
+import { getProfileDetailAPI, updateProfileAPI } from '@/api/user'
 import { onLoad } from '@dcloudio/uni-app'
 
 const baseImgUrl = 'http://localhost:8081'
@@ -13,6 +13,7 @@ const store = useMemberStore()
 // 用户信息，初始化用于用户信息的修改
 const profile = ref({} as ProfileDetail)
 
+// 更新用户头像
 const onAvatarChange = () => {
   // 显示选择图片的提示
   uni.showLoading({ title: '正在选择图片...' })
@@ -103,10 +104,36 @@ const onFullLocationChange: UniHelper.RegionPickerOnChange = (ev) => {
   // 更新前端数据
   profile.value.fullLocation = ev.detail.value.join(' ')
 }
+// 修改参数
+const profileParams = ref<ProfileParams>()
+
 // 提交修改
-const onSubmit = () => {
-  console.log(profile.value)
+const onSubmit = async () => {
+  // 准备请求参数
+  const { nickname, gender, birthday, fullLocation } = profile.value
+  if (!fullLocation) {
+    uni.showToast({ icon: 'none', title: '完整地址不能为空' })
+    return
+  }
+  profileParams.value = {
+    nickname,
+    gender,
+    birthday,
+    fullLocation,
+  }
+  // 调用接口
+  const res = await updateProfileAPI(profileParams.value)
+  // 显示成功消息
+  uni.showToast({
+    icon: 'success',
+    title: res.msg && res.msg.length ? res.msg : '更新成功',
+  })
+  // 延迟返回上一页
+  setTimeout(() => {
+    uni.navigateBack()
+  }, 300)
 }
+
 // 数据回显
 onLoad(() => {
   getProfileDetail()
@@ -172,7 +199,7 @@ onLoad(() => {
             @change="onFullLocationChange"
             class="picker"
             mode="region"
-            :value="profile?.fullLocation?.split(',')"
+            :value="profile?.fullLocation?.split(' ')"
           >
             <view v-if="profile?.fullLocation">{{ profile?.fullLocation }}</view>
             <view class="placeholder" v-else>请选择城市</view>
