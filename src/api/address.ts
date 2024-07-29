@@ -13,7 +13,7 @@ export const getAddressListAPI = () => {
 export const addAddressAPI = (data: AddressParams) => {
   return http({
     method: 'POST',
-    url: '/user/add',
+    url: '/user/addDeliveryAddress',
     data,
   })
 }
@@ -22,7 +22,7 @@ export const addAddressAPI = (data: AddressParams) => {
 export const updateAddressAPI = (data: AddressParams) => {
   return http({
     method: 'PUT',
-    url: '/user/update',
+    url: '/user/updateDeliveryAddress',
     data,
   })
 }

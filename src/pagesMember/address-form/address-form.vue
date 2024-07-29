@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { addAddressAPI } from '@/api/address'
+import { addAddressAPI, updateAddressAPI } from '@/api/address'
 // 表单组件实例
 const formRef = ref()
 // 表单数据
 const form = ref({
+  id: '',
   consignee: '', // 收货人
   phone: '', // 联系方式
   fullLocation: '', // 省市区(前端展示)
@@ -54,13 +55,20 @@ const onSubmit = async () => {
     return
   }
   if (query.id) {
+    // 添加数据
+    form.value.id = query.id
     // 修改地址
-    // await updateMemberAddressAPI(query.id, form.value);
-    // uni.showToast({ icon: 'success', title: '修改成功' });
+    const res = await updateAddressAPI(form.value)
+    if (res.code === '1' && res.msg) {
+      // 后端返回的错误信息
+      uni.showToast({ icon: 'none', title: res.msg })
+      return // 如果有错误信息，不继续执行后续代码
+    }
+    uni.showToast({ icon: 'success', title: '修改成功' })
   } else {
     // 新增地址
     const res = await addAddressAPI(form.value)
-    if (res.code === '1') {
+    if (res.code === '1' && res.msg) {
       // 后端返回的错误信息
       uni.showToast({ icon: 'none', title: res.msg })
       return // 如果有错误信息，不继续执行后续代码
