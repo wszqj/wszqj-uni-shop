@@ -1,9 +1,46 @@
 <script setup lang="ts">
-//
+import { ref, watch } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
+
+// 获取系统信息
+const { safeAreaInsets } = uni.getSystemInfoSync()
+const safeArea = ref<number>(safeAreaInsets!.bottom)
+
+// 获取页面参数
+const props = defineProps<{
+  type: string
+}>()
+
+// 判断页面类型，决定安全区的底部间距
+const updateSafeArea = () => {
+  // 打印调试信息，检查 safeAreaInsets.bottom 的值
+  console.log('safeAreaInsets.bottom:', safeAreaInsets!.bottom)
+  console.log('props.type:', props.type)
+
+  // 更新 safeArea 值
+  safeArea.value = props.type === '2' ? safeAreaInsets!.bottom : 0
+
+  // 打印调试信息，检查 safeArea 的值
+  console.log('safeArea.value:', safeArea.value)
+}
+
+// 组件显示时触发，进行安全区更新
+onShow(() => {
+  updateSafeArea()
+})
+
+// 监听 props.type 的变化，以便在动态变化时也能更新
+watch(
+  () => props.type,
+  () => {
+    updateSafeArea()
+  },
+  { immediate: true }, // 确保在组件初始化时也会触发
+)
 </script>
 
 <template>
-  <scroll-view scroll-y class="scroll-view">
+  <scroll-view :style="{ paddingBottom: safeArea + 'px' }" scroll-y="true" class="scroll-view">
     <!-- 已登录: 显示购物车 -->
     <template v-if="true">
       <!-- 购物车列表 -->
@@ -62,12 +99,12 @@
         </navigator>
       </view>
       <!-- 吸底工具栏 -->
-      <view class="toolbar">
+      <view class="toolbar" :style="{ paddingBottom: safeArea + 'px' }">
         <text class="all" :class="{ checked: true }">全选</text>
         <text class="text">合计:</text>
         <text class="amount">100</text>
         <view class="button-grounp">
-          <view class="button payment-button" :class="{ disabled: true }"> 去结算(10) </view>
+          <view class="button payment-button" :class="{ disabled: true }"> 去结算(10)</view>
         </view>
       </view>
     </template>
@@ -264,15 +301,18 @@
   align-items: center;
   flex-direction: column;
   height: 60vh;
+
   .image {
     width: 400rpx;
     height: 281rpx;
   }
+
   .text {
     color: #444;
     font-size: 26rpx;
     margin: 20rpx 0;
   }
+
   .button {
     width: 240rpx !important;
     height: 60rpx;
@@ -367,6 +407,7 @@
     }
   }
 }
+
 // 底部占位空盒子
 .toolbar-height {
   height: 100rpx;
