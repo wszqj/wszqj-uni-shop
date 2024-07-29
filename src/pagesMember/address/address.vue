@@ -1,44 +1,42 @@
 <script setup lang="ts">
-//
+// 收货地址列表
+import type { AddressItem } from '@/types/address'
+import { ref } from 'vue'
+import { getAddressListAPI } from '@/api/address'
+import { onShow } from '@dcloudio/uni-app'
+
+const addressList = ref<AddressItem[]>([])
+//获取用户收货地址列表
+const getAddressList = async () => {
+  const res = await getAddressListAPI()
+  console.log('res:', res.result)
+  addressList.value = res.result
+}
+
+onShow(() => {
+  getAddressList()
+})
 </script>
 
 <template>
   <view class="viewport">
     <!-- 地址列表 -->
     <scroll-view class="scroll-view" scroll-y>
-      <view v-if="true" class="address">
-        <view class="address-list">
+      <view v-if="addressList.length" class="address">
+        <view class="address-list" v-for="item in addressList" :key="item.id">
           <!-- 收货地址项 -->
           <view class="item">
             <view class="item-content">
               <view class="user">
-                黑马小王子
-                <text class="contact">13111111111</text>
-                <text v-if="true" class="badge">默认</text>
+                {{ item.consignee }}
+                <text class="contact">{{ item.phone }}</text>
+                <text v-if="item.status === 1" class="badge">默认</text>
               </view>
-              <view class="locate">广东省 广州市 天河区 黑马程序员</view>
+              <view class="locate">{{ item.fullLocation }} {{ item.consignee }}</view>
               <navigator
                 class="edit"
                 hover-class="none"
-                :url="`/pagesMember/address-form/address-form?id=1`"
-              >
-                修改
-              </navigator>
-            </view>
-          </view>
-          <!-- 收货地址项 -->
-          <view class="item">
-            <view class="item-content">
-              <view class="user">
-                黑马小公主
-                <text class="contact">13222222222</text>
-                <text v-if="false" class="badge">默认</text>
-              </view>
-              <view class="locate">北京市 北京市 顺义区 黑马程序员</view>
-              <navigator
-                class="edit"
-                hover-class="none"
-                :url="`/pagesMember/address-form/address-form?id=2`"
+                :url="`/pagesMember/address-form/address-form?id=${item.id}`"
               >
                 修改
               </navigator>
