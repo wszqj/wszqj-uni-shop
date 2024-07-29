@@ -26,3 +26,11 @@ export const updateAddressAPI = (data: AddressParams) => {
     data,
   })
 }
+
+// 根据ID查询地址信息
+export const getAddressAPI = (id: string) => {
+  return http<AddressItem>({
+    method: 'GET',
+    url: `/user/deliveryAddress?id=${id}`,
+  })
+}

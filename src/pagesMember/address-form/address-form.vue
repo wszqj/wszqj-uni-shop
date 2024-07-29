@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { addAddressAPI, updateAddressAPI } from '@/api/address'
+import { addAddressAPI, getAddressAPI, updateAddressAPI } from '@/api/address'
+import { onShow } from '@dcloudio/uni-app'
 // 表单组件实例
 const formRef = ref()
 // 表单数据
@@ -12,6 +13,10 @@ const form = ref({
   address: '', // 详细地址
   status: 0, // 是否默认 (0: 否, 1: 是)
 })
+// 默认地址修改
+const onSwitchChange: UniHelper.SwitchOnChange = (ev) => {
+  form.value.status = ev.detail.value ? 1 : 0
+}
 // 校验规则
 const rules = {
   consignee: {
@@ -46,6 +51,7 @@ const regionChange: UniHelper.RegionPickerOnChange = (ev) => {
 
 // 提交表单
 const onSubmit = async () => {
+  console.log(form.value)
   try {
     // 表单校验
     await formRef.value?.validate?.()
@@ -81,6 +87,21 @@ const onSubmit = async () => {
     uni.navigateBack()
   }, 500)
 }
+
+// 回显数据
+const getAddressInfo = async () => {
+  if (query.id) {
+    // 获取地址信息
+    const res = await getAddressAPI(query.id)
+    // 赋值
+    form.value = res.result
+  }
+}
+
+// 加载数据
+onShow(() => {
+  getAddressInfo()
+})
 </script>
 
 <template>
@@ -113,7 +134,12 @@ const onSubmit = async () => {
       </view>
       <view class="form-item">
         <label class="label">设为默认地址</label>
-        <switch class="switch" color="#27ba9b" :checked="form.status === 1" />
+        <switch
+          @change="onSwitchChange"
+          class="switch"
+          color="#27ba9b"
+          :checked="form.status === 1"
+        />
       </view>
     </form>
   </view>
