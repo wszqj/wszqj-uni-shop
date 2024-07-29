@@ -1,50 +1,116 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-
+import { addAddressAPI } from '@/api/address'
+// 表单组件实例
+const formRef = ref()
 // 表单数据
 const form = ref({
-  receiver: '', // 收货人
-  contact: '', // 联系方式
+  consignee: '', // 收货人
+  phone: '', // 联系方式
   fullLocation: '', // 省市区(前端展示)
-  provinceCode: '', // 省份编码(后端参数)
-  cityCode: '', // 城市编码(后端参数)
-  countyCode: '', // 区/县编码(后端参数)
   address: '', // 详细地址
-  isDefault: 0, // 默认地址，1为是，0为否
+  status: 0, // 是否默认 (0: 否, 1: 是)
 })
+// 校验规则
+const rules = {
+  consignee: {
+    rules: [{ required: true, errorMessage: '请输入收货人姓名' }],
+  },
+  phone: {
+    rules: [
+      { required: true, errorMessage: '请输入联系方式' },
+      { pattern: /^1[3-9]\d{9}$/, errorMessage: '手机号格式不正确' },
+    ],
+  },
+  fullLocation: {
+    rules: [{ required: true, errorMessage: '请选择所在地区' }],
+  },
+  address: {
+    rules: [{ required: true, errorMessage: '请输入详细地址' }],
+  },
+  status: {
+    rules: [{ required: true, errorMessage: '请选择是否默认' }],
+  },
+}
+// 获取页面参数
+const query = defineProps<{
+  id: string
+}>()
+
+// 获取修改之后的地址信息
+const regionChange: UniHelper.RegionPickerOnChange = (ev) => {
+  //  前端展示数据
+  form.value.fullLocation = ev.detail.value.join(' ')
+}
+
+// 提交表单
+const onSubmit = async () => {
+  try {
+    // 表单校验
+    await formRef.value?.validate?.()
+  } catch {
+    // 如果表单校验未通过，处理并显示校验错误信息
+    uni.showToast({ icon: 'none', title: '请将信息完善' })
+    return
+  }
+  if (query.id) {
+    // 修改地址
+    // await updateMemberAddressAPI(query.id, form.value);
+    // uni.showToast({ icon: 'success', title: '修改成功' });
+  } else {
+    // 新增地址
+    const res = await addAddressAPI(form.value)
+    if (res.code === '1') {
+      // 后端返回的错误信息
+      uni.showToast({ icon: 'none', title: res.msg })
+      return // 如果有错误信息，不继续执行后续代码
+    }
+    // 成功信息
+    uni.showToast({ icon: 'success', title: '添加成功' })
+  }
+  // 返回上一页
+  setTimeout(() => {
+    uni.navigateBack()
+  }, 500)
+}
 </script>
 
 <template>
   <view class="content">
-    <form>
+    <form :rules="rules" :model="form" ref="formRef">
       <!-- 表单内容 -->
       <view class="form-item">
         <text class="label">收货人</text>
-        <input class="input" placeholder="请填写收货人姓名" value="" />
+        <input class="input" placeholder="请填写收货人姓名" v-model="form.consignee" />
       </view>
       <view class="form-item">
         <text class="label">手机号码</text>
-        <input class="input" placeholder="请填写收货人手机号码" value="" />
+        <input class="input" placeholder="请填写收货人手机号码" v-model="form.phone" />
       </view>
       <view class="form-item">
         <text class="label">所在地区</text>
-        <picker class="picker" mode="region" value="">
-          <view v-if="false">广东省 广州市 天河区</view>
+        <picker
+          class="picker"
+          mode="region"
+          :value="form.fullLocation.split(' ')"
+          @change="regionChange"
+        >
+          <view v-if="form?.fullLocation">{{ form.fullLocation }}</view>
           <view v-else class="placeholder">请选择省/市/区(县)</view>
         </picker>
       </view>
       <view class="form-item">
         <text class="label">详细地址</text>
-        <input class="input" placeholder="街道、楼牌号等信息" value="" />
+        <input class="input" placeholder="街道、楼牌号等信息" v-model="form.address" />
       </view>
       <view class="form-item">
         <label class="label">设为默认地址</label>
-        <switch class="switch" color="#27ba9b" :checked="true" />
+        <switch class="switch" color="#27ba9b" :checked="form.status === 1" />
       </view>
     </form>
   </view>
   <!-- 提交按钮 -->
-  <button class="button">保存并使用</button>
+  <button class="button" @tap="onSubmit">保存并使用</button>
 </template>
 
 <style lang="scss">
