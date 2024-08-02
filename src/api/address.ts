@@ -34,3 +34,11 @@ export const getAddressAPI = (id: string) => {
     url: `/user/deliveryAddress?id=${id}`,
   })
 }
+
+// 删除地址
+export const deleteAddressAPI = (id: string) => {
+  return http({
+    method: 'DELETE',
+    url: `/user/deliveryAddress?id=${id}`,
+  })
+}

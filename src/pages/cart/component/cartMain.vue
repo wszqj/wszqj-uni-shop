@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-
+import {
+  deleteCartItemAPI,
+  getCartListAPI,
+  updateCartAllCheckedAPI,
+  updateCartItemAPI,
+} from '@/api/cart'
+import { useMemberStore } from '@/stores'
+import vkDataInputNumberBox from '@/components/vk-data-input-number-box/vk-data-input-number-box.vue'
+import { baseImgUrl } from '@/constants'
 // 获取系统信息
 const { safeAreaInsets } = uni.getSystemInfoSync()
 const safeArea = ref<number>(safeAreaInsets!.bottom)
@@ -11,22 +19,94 @@ const props = defineProps<{
   type: string
 }>()
 
+// 用户信息
+const memberStore = useMemberStore()
 // 判断页面类型，决定安全区的底部间距
 const updateSafeArea = () => {
-  // 打印调试信息，检查 safeAreaInsets.bottom 的值
-  console.log('safeAreaInsets.bottom:', safeAreaInsets!.bottom)
-  console.log('props.type:', props.type)
-
   // 更新 safeArea 值
   safeArea.value = props.type === '2' ? safeAreaInsets!.bottom : 0
+}
+// 购物车列表
+const shoppingCart = ref<CartItem[]>([])
+// 获取购物车列表
+const getCartList = async () => {
+  const res = await getCartListAPI()
+  shoppingCart.value = res.result
+}
 
-  // 打印调试信息，检查 safeArea 的值
-  console.log('safeArea.value:', safeArea.value)
+// 修改选中状态
+const onChangeSelected = async (item: CartItem) => {
+  // 取反状态
+  item.itemStatus = !item.itemStatus
+  // 更新后端数据
+  await updateCartItemAPI(item)
+}
+
+// 修改商品的数量
+const onChangeCount = async (item: CartItem) => {
+  // 调用API
+  await updateCartItemAPI(item)
+}
+
+// 删除商品
+const onDeleteAddress = async (id: number) => {
+  const res = await deleteCartItemAPI(id)
+  if (res.code) {
+    uni.showToast({ icon: 'success', title: res.msg })
+  } else {
+    uni.showToast({ icon: 'error', title: res.msg })
+  }
+  await getCartList()
+}
+
+// 全选
+const onChangeSelectedAll = async () => {
+  // 取反 全选状态
+  const _isSelectedAll = !isSelectedAll.value
+  //  修改前端数据, 取消全选：isSelectedAll：true 取反 false -> 所有元素全变为 false 原本是 false 依旧是 false
+  //               全选：isSelectedAll：false 取反 true -> 所有元素全变为 true 原本是 true 依旧是 true
+  shoppingCart.value.forEach((item) => {
+    item.itemStatus = _isSelectedAll
+  })
+  // 后端数据更新
+  await updateCartAllCheckedAPI(_isSelectedAll)
+}
+
+// 计算当前是否全选
+const isSelectedAll = computed(() => {
+  return shoppingCart.value.length && shoppingCart.value.every((v) => v.itemStatus)
+})
+
+// 计算商品被选中的数量
+const selectedCount = computed(() => {
+  return shoppingCart.value.filter((v) => v.itemStatus).length
+})
+
+// 计算商品总价值并保留两位小数
+const totalPrice = computed(() => {
+  // 计算总价格
+  const total = shoppingCart.value.reduce((total, item) => {
+    // 将 item.itemPrice 从字符串转换为数字
+    const price = parseFloat(item.itemPrice)
+    // item.itemCount 已经是整数，所以直接使用
+    return total + price * item.itemCount
+  }, 0) // 0 是初始值
+  // 保留两位小数
+  return total.toFixed(2)
+})
+
+// 去结算 TODO 未完成
+const toBuy = () => {
+  // 如果未选商品
+  if (selectedCount.value < 1) {
+    uni.showToast({ icon: 'none', title: '请先选择商品' })
+  }
 }
 
 // 组件显示时触发，进行安全区更新
 onShow(() => {
   updateSafeArea()
+  getCartList()
 })
 
 // 监听 props.type 的变化，以便在动态变化时也能更新
@@ -42,9 +122,9 @@ watch(
 <template>
   <scroll-view :style="{ paddingBottom: safeArea + 'px' }" scroll-y="true" class="scroll-view">
     <!-- 已登录: 显示购物车 -->
-    <template v-if="true">
+    <template v-if="memberStore?.profile">
       <!-- 购物车列表 -->
-      <view class="cart-list" v-if="true">
+      <view class="cart-list" v-if="shoppingCart.length">
         <!-- 优惠提示 -->
         <view class="tips">
           <text class="label">满减</text>
@@ -53,38 +133,44 @@ watch(
         <!-- 滑动操作分区 -->
         <uni-swipe-action>
           <!-- 滑动操作项 -->
-          <uni-swipe-action-item v-for="item in 2" :key="item" class="cart-swipe">
+          <uni-swipe-action-item v-for="item in shoppingCart" :key="item.itemId" class="cart-swipe">
             <!-- 商品信息 -->
             <view class="goods">
               <!-- 选中状态 -->
-              <text class="checkbox" :class="{ checked: true }"></text>
+              <text
+                class="checkbox"
+                :class="{ checked: item.itemStatus }"
+                @tap="onChangeSelected(item)"
+              ></text>
               <navigator
-                :url="`/pages/goods/goods?id=1435025`"
+                :url="`/pages/goods/goods?id=${item.goodsId}`"
                 hover-class="none"
                 class="navigator"
               >
-                <image
-                  mode="aspectFill"
-                  class="picture"
-                  src="https://yanxuan-item.nosdn.127.net/da7143e0103304f0f3230715003181ee.jpg"
-                ></image>
+                <image mode="aspectFill" class="picture" :src="baseImgUrl + item.itemImg"></image>
                 <view class="meta">
-                  <view class="name ellipsis">人手必备，儿童轻薄透气防蚊裤73-140cm</view>
-                  <view class="attrsText ellipsis">黄色小象 140cm</view>
-                  <view class="price">69.00</view>
+                  <view class="name ellipsis">{{ item.goodsName }}</view>
+                  <view class="attrsText ellipsis">{{ item.itemAttributeMsg }}</view>
+                  <view class="price">{{ item.itemPrice }}</view>
                 </view>
               </navigator>
               <!-- 商品数量 -->
               <view class="count">
-                <text class="text">-</text>
-                <input class="input" type="number" value="1" />
-                <text class="text">+</text>
+                <vk-data-input-number-box
+                  v-model="item.itemCount"
+                  :min="1"
+                  :max="item.itemStock"
+                  :index="item.itemSkuId"
+                  @change="onChangeCount(item)"
+                />
               </view>
             </view>
             <!-- 右侧删除按钮 -->
             <template #right>
               <view class="cart-swipe-right">
-                <button class="button delete-button">删除</button>
+                <button class="button delete-button" @tap="onDeleteAddress(item.itemId)">
+                  删除
+                </button>
               </view>
             </template>
           </uni-swipe-action-item>
@@ -100,11 +186,13 @@ watch(
       </view>
       <!-- 吸底工具栏 -->
       <view class="toolbar" :style="{ paddingBottom: safeArea + 'px' }">
-        <text class="all" :class="{ checked: true }">全选</text>
+        <text class="all" :class="{ checked: isSelectedAll }" @tap="onChangeSelectedAll">全选</text>
         <text class="text">合计:</text>
-        <text class="amount">100</text>
+        <text class="amount">{{ totalPrice }}</text>
         <view class="button-grounp">
-          <view class="button payment-button" :class="{ disabled: true }"> 去结算(10)</view>
+          <view class="button payment-button" :class="{ disabled: selectedCount < 1 }" @tap="toBuy">
+            去结算({{ selectedCount }})
+          </view>
         </view>
       </view>
     </template>
@@ -226,9 +314,8 @@ watch(
     .price {
       line-height: 1;
       font-size: 26rpx;
-      color: #444;
       margin-bottom: 2rpx;
-      color: #cf4444;
+      color: #ff605c;
 
       &::before {
         content: '￥';
@@ -288,7 +375,7 @@ watch(
     }
 
     .delete-button {
-      background-color: #cf4444;
+      background-color: #ff605c;
     }
   }
 }
@@ -371,7 +458,7 @@ watch(
 
   .amount {
     font-size: 20px;
-    color: #cf4444;
+    color: #ff605c;
 
     .decimal {
       font-size: 12px;

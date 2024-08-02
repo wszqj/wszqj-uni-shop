@@ -86,7 +86,9 @@ const openPopup = (name: typeof popupName.value) => {
 
 // 处理 SKU 组件
 const openSku = (val: SkuMode) => {
+  // 修改模式
   mode.value = val
+  // 显示sku
   isShowSKU.value = true
 }
 
@@ -225,7 +227,7 @@ onShow(() => {
       </navigator>
     </view>
     <view class="buttons">
-      <view class="addcart"> 加入购物车</view>
+      <view class="addcart" @tap="openSku(SkuMode.CART)"> 加入购物车</view>
       <view class="buynow"> 立即购买</view>
     </view>
   </view>
