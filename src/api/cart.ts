@@ -31,3 +31,11 @@ export const updateCartAllCheckedAPI = (status: boolean) => {
     url: `/cart/updateAllChecked?status=${status}`,
   })
 }
+
+// 添加购物车商品
+export const addShoppingCartItemAPI = (skuId: string, count: number) => {
+  return http({
+    method: 'PUT',
+    url: `/cart/add?skuId=${skuId}&count=${count}`,
+  })
+}

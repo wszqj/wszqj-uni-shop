@@ -11,7 +11,7 @@ import type {
 export const getGoodsListAPI = (data?: GoodsListParams) => {
   return http<PageResult<GoodsListVO>>({
     method: 'GET',
-    url: '/home/list',
+    url: `/home/list?page=${data?.page}&pageSize=${data?.pageSize}&name=${data?.name}`,
     data,
   })
 }

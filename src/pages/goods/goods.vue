@@ -10,6 +10,7 @@ import type {
 } from '@/components/vk-data-goods-sku-popup/vk-data-goods-sku-popup'
 import { onShow } from '@dcloudio/uni-app'
 import { baseImgUrl } from '@/constants'
+import { addShoppingCartItemAPI } from '@/api/cart'
 // 获取系统信息
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -97,18 +98,17 @@ const selectArrText = computed(() => {
   return skuRef.value?.selectArr?.join(' ').trim() || '请选择商品规格'
 })
 
-// 添加到购物车
-const addMemberCart = async (ev: SkuPopupEvent) => {
-  try {
-    // 调用 API 添加到购物车
-    // await addMemberCartAPI({ skuId: ev._id, count: ev.buy_num })
-    uni.showToast({ icon: 'success', title: '添加成功' })
-  } catch (error) {
-    console.error('添加到购物车失败:', error)
+// 添加购物车
+const addShoppingCartItem = async (ev: SkuPopupEvent) => {
+  const res = await addShoppingCartItemAPI(ev._id, ev.buy_num)
+  if (res.code == '0') {
+    uni.showToast({ icon: 'none', title: res.msg ? res.msg : '添加失败' })
   }
+  // 成功提示
+  uni.showToast({ icon: 'none', title: res.msg ? res.msg : '添加成功' })
+  // 隐藏sku组件
   isShowSKU.value = false
 }
-
 // 立即购买
 const onBuyNow = (ev: SkuPopupEvent) => {
   uni.navigateTo({ url: `/pagesOrder/create/create?skuId=${ev._id}&count=${ev.buy_num}` })
@@ -135,7 +135,7 @@ onShow(() => {
       borderColor: '#27ba9b',
       backgroundColor: '#cbd1d1',
     }"
-    @add-cart="addMemberCart"
+    @add-cart="addShoppingCartItem"
     @buy-now="onBuyNow"
   />
   <scroll-view scroll-y class="viewport">
