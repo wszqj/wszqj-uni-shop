@@ -101,6 +101,8 @@ const toBuy = () => {
   if (selectedCount.value < 1) {
     uni.showToast({ icon: 'none', title: '请先选择商品' })
   }
+  // 跳转支付页面
+  uni.navigateTo({ url: '/pagesOrder/create/create' })
 }
 
 // 组件显示时触发，进行安全区更新

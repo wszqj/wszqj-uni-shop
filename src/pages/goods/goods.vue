@@ -228,7 +228,7 @@ onShow(() => {
     </view>
     <view class="buttons">
       <view class="addcart" @tap="openSku(SkuMode.CART)"> 加入购物车</view>
-      <view class="buynow"> 立即购买</view>
+      <view class="buynow" @tap="openSku(SkuMode.BUY)"> 立即购买</view>
     </view>
   </view>
 </template>
