@@ -82,15 +82,18 @@ const selectedCount = computed(() => {
   return shoppingCart.value.filter((v) => v.itemStatus).length
 })
 
-// 计算商品总价值并保留两位小数
+// 计算商品总价值并保留两位小数 状态为选中状态
 const totalPrice = computed(() => {
   // 计算总价格
-  const total = shoppingCart.value.reduce((total, item) => {
-    // 将 item.itemPrice 从字符串转换为数字
-    const price = parseFloat(item.itemPrice)
-    // item.itemCount 已经是整数，所以直接使用
-    return total + price * item.itemCount
-  }, 0) // 0 是初始值
+  const total = shoppingCart.value
+    // 过滤出选中状态的元素
+    .filter((v) => v.itemStatus)
+    .reduce((total, item) => {
+      // 将 item.itemPrice 从字符串转换为数字
+      const price = parseFloat(item.itemPrice)
+      // item.itemCount 已经是整数，所以直接使用
+      return total + price * item.itemCount
+    }, 0) // 0 是初始值
   // 保留两位小数
   return total.toFixed(2)
 })
@@ -100,6 +103,7 @@ const toBuy = () => {
   // 如果未选商品
   if (selectedCount.value < 1) {
     uni.showToast({ icon: 'none', title: '请先选择商品' })
+    return
   }
   // 跳转支付页面
   uni.navigateTo({ url: '/pagesOrder/create/create' })
@@ -192,7 +196,11 @@ watch(
         <text class="text">合计:</text>
         <text class="amount">{{ totalPrice }}</text>
         <view class="button-grounp">
-          <view class="button payment-button" :class="{ disabled: selectedCount < 1 }" @tap="toBuy">
+          <view
+            class="button payment-button"
+            :class="{ disabled: selectedCount === 0 }"
+            @tap="toBuy"
+          >
             去结算({{ selectedCount }})
           </view>
         </view>

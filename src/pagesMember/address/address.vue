@@ -4,6 +4,7 @@ import type { AddressItem } from '@/types/address'
 import { ref } from 'vue'
 import { deleteAddressAPI, getAddressListAPI } from '@/api/address'
 import { onShow } from '@dcloudio/uni-app'
+import { useSelectedAddress } from '@/stores/modules/address'
 
 const addressList = ref<AddressItem[]>([])
 //获取用户收货地址列表
@@ -11,6 +12,16 @@ const getAddressList = async () => {
   const res = await getAddressListAPI()
   console.log('res:', res.result)
   addressList.value = res.result
+}
+
+// 修改收货地址
+const changeSelectedAddress = (item: AddressItem) => {
+  // 获取 addressStore
+  const addressStore = useSelectedAddress()
+  // 修改
+  addressStore.selectedAddress = item
+  // 返回上一页
+  uni.navigateBack()
 }
 
 // 删除地址
@@ -42,7 +53,7 @@ onShow(() => {
         <uni-swipe-action class="address-list">
           <!-- 收货地址项 -->
           <uni-swipe-action-item class="item" v-for="item in addressList" :key="item.id">
-            <view class="item-content">
+            <view class="item-content" @tap="changeSelectedAddress(item)">
               <view class="user">
                 {{ item.consignee }}
                 <text class="contact">{{ item.phone }}</text>

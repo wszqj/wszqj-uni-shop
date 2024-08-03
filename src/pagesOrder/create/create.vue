@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { getOrderPreAPI } from '@/api/order'
+import { buyNowAPI, getOrderPreAgainAPI, getOrderPreAPI } from '@/api/order'
 import { onLoad } from '@dcloudio/uni-app'
 import type { OrderPreResult } from '@/types/order'
 import { useSelectedAddress } from '@/stores/modules/address'
@@ -29,22 +29,32 @@ const onChangeDelivery: UniHelper.SelectorPickerOnChange = (ev) => {
 const query = defineProps<{
   skuId?: string
   count?: string
+  orderId?: string
 }>()
+
 // 预支付交易单
 const orderPre = ref<OrderPreResult>()
 // 生成预支付订单
 const getOrderPre = async () => {
-  // 获取预支付订单
-  const res = await getOrderPreAPI()
-  orderPre.value = res.result
-  console.log(orderPre.value)
+  if (query?.count && query?.skuId) {
+    // 立即购买
+    const res = await buyNowAPI(query.skuId, query.count)
+    orderPre.value = res.result
+  } else if (query?.orderId) {
+    // 再次购买
+    const res = await getOrderPreAgainAPI(query.orderId)
+    orderPre.value = res.result
+  } else {
+    // 获取预支付订单
+    const res = await getOrderPreAPI()
+    orderPre.value = res.result
+  }
 }
-
 // 获取收货地址
 const addressStore = useSelectedAddress()
 // 计算默认地址
 const selectedAddress = computed(() => {
-  return addressStore.selectedAddress || orderPre.value?.userAddresses!.find((v) => v.status)!
+  return addressStore.selectedAddress || orderPre.value?.userAddresses!.find((v) => v.status == 1)!
 })
 // 加载数据
 onLoad(() => {
@@ -56,7 +66,7 @@ onLoad(() => {
   <scroll-view scroll-y class="viewport">
     <!-- 收货地址 -->
     <navigator
-      v-if="false"
+      v-if="selectedAddress"
       class="shipment"
       hover-class="none"
       url="/pagesMember/address/address?from=order"
