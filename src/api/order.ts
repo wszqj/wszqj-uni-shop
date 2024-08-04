@@ -1,5 +1,5 @@
 import { http } from '@/utils/http'
-import type { OrderPreResult } from '@/types/order'
+import type { OrderCreateParams, OrderPreResult } from '@/types/order'
 
 // 获取订单结算信息
 export const getOrderPreAPI = () => {
@@ -20,5 +20,13 @@ export const getOrderPreAgainAPI = (orderId: string) => {
   return http<OrderPreResult>({
     method: 'GET',
     url: `/order/pre/again?orderId=${orderId}`,
+  })
+}
+// 提交订单
+export const createOrderAPI = (data: OrderCreateParams) => {
+  return http({
+    method: 'POST',
+    url: '/order/create',
+    data,
   })
 }

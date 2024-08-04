@@ -48,7 +48,7 @@ export type OrderCreateParams = {
   /** 配送时间类型，1为不限，2为工作日，3为双休或假日 */
   deliveryTimeType: number
   /** 订单备注 */
-  buyerMessage: string
+  buyMsg: string
   /** 商品集合[ 商品信息 ] */
   goods: {
     /** 数量 */
