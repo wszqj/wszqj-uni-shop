@@ -25,7 +25,6 @@ const orderList = ref<OrderItem[]>([])
 const getMemberOrderData = async () => {
   const res = await getOrderListAPI(queryParams)
   orderList.value = res.result.records
-  console.log(orderList.value)
 }
 onMounted(() => {
   getMemberOrderData()
@@ -99,7 +98,7 @@ const onScrolltolower = async () => {
         <template v-else>
           <navigator
             class="button secondary"
-            :url="`/pagesOrder/create/create?orderId=id`"
+            :url="`/pagesOrder/create/create?orderId=${order.orderId}`"
             hover-class="none"
           >
             再次购买
@@ -113,7 +112,7 @@ const onScrolltolower = async () => {
     </view>
     <!-- 底部提示文字 -->
     <view class="loading-text" :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }">
-      {{ finish ? '没有更多数据~' : '正在加载...' }}
+      {{ finish || orderList.length === 0 ? '没有更多数据~' : '正在加载...' }}
     </view>
   </scroll-view>
 </template>
