@@ -56,7 +56,7 @@ const onOrderPay = async (orderId: string) => {
   const res = await getOrderDetailAPI(orderId)
   // 模拟支付确认对话框
   uni.showModal({
-    content: `确认付款 ￥ ${res.result.payMoney} 元`,
+    content: `确认付款 ￥ ${res.result.payMoney.toFixed(2)} 元`,
     success: async (res) => {
       if (res.confirm) {
         try {

@@ -185,7 +185,7 @@ onLoad(() => {
     <view class="settlement">
       <view class="item">
         <text class="text">商品总价:</text>
-        <text class="number symbol">{{ orderPre?.summary.totalPrice }}</text>
+        <text class="number symbol">{{ orderPre?.summary.totalPayPrice.toFixed(2) }}</text>
       </view>
       <view class="item">
         <text class="text">运费:</text>
@@ -197,7 +197,7 @@ onLoad(() => {
   <!-- 吸底工具栏 -->
   <view class="toolbar" :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }">
     <view class="total-pay symbol">
-      <text class="number">{{ orderPre?.summary.totalPayPrice }}</text>
+      <text class="number">{{ orderPre?.summary.totalPayPrice.toFixed(2) }}</text>
     </view>
     <view
       class="button"

@@ -13,8 +13,9 @@ const url = ref<string>('')
 // 切割id
 const splitId = () => {
   try {
+    console.log('query.id', query.id)
     const ids = query.id.split(',')
-    const secondId = ids.length > 1 ? ids[1] : null
+    const secondId = ids.length > 1
     if (secondId) {
       url.value = `/pagesOrder/list/list`
     } else {
