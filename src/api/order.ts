@@ -1,5 +1,10 @@
 import { http } from '@/utils/http'
-import type { OrderCreateParams, OrderPreResult } from '@/types/order'
+import type {
+  OrderCreateParams,
+  OrderListParams,
+  OrderListResult,
+  OrderPreResult,
+} from '@/types/order'
 
 // 获取订单结算信息
 export const getOrderPreAPI = () => {
@@ -28,5 +33,13 @@ export const createOrderAPI = (data: OrderCreateParams) => {
     method: 'POST',
     url: '/order/create',
     data,
+  })
+}
+
+// 获取订单列表
+export const getOrderListAPI = (query: OrderListParams) => {
+  return http<OrderListResult>({
+    method: 'GET',
+    url: `/order/list?page=${query.page}&pageSize=${query.pageSize}&orderState=${query.orderState}`,
   })
 }

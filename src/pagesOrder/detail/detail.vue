@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { userGuessList } from '@/composables'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import HomeGuess from '@/components/HomeGuess.vue'
 import { onReady } from '@dcloudio/uni-app'
-import type { OrderSkuItem } from '@/types/order'
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
 // 猜你喜欢

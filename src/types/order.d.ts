@@ -145,7 +145,7 @@ export type OrderListParams = PageParams & { orderState: number }
 /** 订单列表 */
 export type OrderListResult = {
   /** 总记录数 */
-  counts: number
+  total: number
   /** 数据集合    [ 订单信息 ] */
   items: OrderItem[]
   /** 当前页码 */
@@ -157,7 +157,25 @@ export type OrderListResult = {
 }
 
 /** 订单列表项 */
-export type OrderItem = OrderResult & {
-  /** 总件数 */
-  totalNum: number
+export type OrderItem = {
+  // 订单ID
+  orderId: string
+  // 商品skuID
+  skuId: number
+  // 商品名称
+  skuName: string
+  // 商品图片
+  skuImg: string
+  // 商品价格
+  skuPrice: number
+  // 商品数量
+  count: number
+  // 商品属性
+  skuAttrsText: string
+  // 订单创建时间
+  createAt: string
+  // 订单状态
+  orderState: number
+  // 商品总价
+  totalPrice: number
 }
