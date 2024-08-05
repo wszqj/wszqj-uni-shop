@@ -4,6 +4,7 @@ import type {
   OrderListParams,
   OrderListResult,
   OrderPreResult,
+  OrderResult,
 } from '@/types/order'
 
 // 获取订单结算信息
@@ -41,5 +42,12 @@ export const getOrderListAPI = (query: OrderListParams) => {
   return http<OrderListResult>({
     method: 'GET',
     url: `/order/list?page=${query.page}&pageSize=${query.pageSize}&orderState=${query.orderState}`,
+  })
+}
+// 获取订单详情
+export const getOrderDetailAPI = (id: string) => {
+  return http<OrderResult>({
+    method: 'GET',
+    url: `/order/detail?id=${id}`,
   })
 }

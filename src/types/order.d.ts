@@ -104,7 +104,7 @@ export type OrderSkuItem = {
   /** 商品属性文字 */
   attrsText: string
   /** 数量 */
-  quantity: number
+  count: number
   /** 购买时单价 */
   curPrice: number
   /** 图片地址 */
