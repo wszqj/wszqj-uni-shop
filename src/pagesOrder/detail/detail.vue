@@ -3,10 +3,12 @@ import { userGuessList } from '@/composables'
 import { onMounted, ref } from 'vue'
 import HomeGuess from '@/components/HomeGuess.vue'
 import { onReady } from '@dcloudio/uni-app'
-import { getOrderDetailAPI } from '@/api/order'
+import { getOrderDetailAPI, payOrderAPI } from '@/api/order'
 import type { OrderResult } from '@/types/order'
 import { OrderState, orderStateList } from '@/api/constants'
 import { baseImgUrl } from '@/constants'
+import uniPopup from '@dcloudio/uni-ui/lib/uni-popup/uni-popup.vue'
+
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
 // 猜你喜欢
@@ -46,6 +48,31 @@ const order = ref<OrderResult>()
 const getOrderDetail = async () => {
   const res = await getOrderDetailAPI(query.id)
   order.value = res.result
+}
+
+// 模拟支付
+const onOrderPay = async (orderId: string) => {
+  // 获取订单详情
+  const res = await getOrderDetailAPI(orderId)
+  // 模拟支付确认对话框
+  uni.showModal({
+    content: `确认付款 ￥ ${res.result.payMoney} 元`,
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          // 模拟支付成功
+          await payOrderAPI(orderId)
+          // 跳转到订单支付详情页面并关闭当前页面
+          uni.redirectTo({ url: `/pagesOrder/payment/payment?id=${orderId}` })
+        } catch (error) {
+          uni.showToast({ icon: 'none', title: '支付失败，请重试' })
+        }
+      } else if (res.cancel) {
+        // 用户取消支付，跳转到订单列表页面
+        uni.redirectTo({ url: `/pagesOrder/list/list` })
+      }
+    },
+  })
 }
 // 加载数据
 onMounted(() => {
@@ -219,7 +246,7 @@ onReady(() => {
       <view class="toolbar" :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }">
         <!-- 待付款状态:展示支付按钮 -->
         <template v-if="order.orderState === OrderState.DaiFuKuan">
-          <view class="button primary"> 去支付</view>
+          <view class="button primary" @tap="onOrderPay(order.id)"> 去支付</view>
           <view class="button" @tap="popup?.open?.()"> 取消订单</view>
         </template>
         <!-- 其他订单状态:按需展示按钮 -->

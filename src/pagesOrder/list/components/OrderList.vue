@@ -2,7 +2,7 @@
 import type { OrderItem, OrderListParams } from '@/types/order'
 import { onMounted, ref } from 'vue'
 import { OrderState, orderStateList } from '@/api/constants'
-import { getOrderListAPI } from '@/api/order'
+import { getOrderDetailAPI, getOrderListAPI, payOrderAPI } from '@/api/order'
 import { baseImgUrl } from '@/constants'
 
 // 获取屏幕边界到安全区域距离
@@ -53,6 +53,30 @@ const onScrolltolower = async () => {
     finish.value = true
   }
 }
+// 模拟支付
+const onOrderPay = async (orderId: string) => {
+  // 获取订单详情
+  const res = await getOrderDetailAPI(orderId)
+  // 模拟支付确认对话框
+  uni.showModal({
+    content: `确认付款 ￥ ${res.result.payMoney} 元`,
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          // 模拟支付成功
+          await payOrderAPI(orderId)
+          // 跳转到订单支付详情页面并关闭当前页面
+          uni.redirectTo({ url: `/pagesOrder/payment/payment?id=${orderId}` })
+        } catch (error) {
+          uni.showToast({ icon: 'none', title: '支付失败，请重试' })
+        }
+      } else if (res.cancel) {
+        // 用户取消支付，跳转到订单列表页面
+        uni.redirectTo({ url: `/pagesOrder/list/list` })
+      }
+    },
+  })
+}
 </script>
 
 <template>
@@ -93,7 +117,7 @@ const onScrolltolower = async () => {
       <view class="action">
         <!-- 待付款状态：显示去支付按钮 -->
         <template v-if="order.orderState === OrderState.DaiFuKuan">
-          <view class="button primary">去支付</view>
+          <view class="button primary" @tap="onOrderPay(order.orderId)">去支付</view>
         </template>
         <template v-else>
           <navigator

@@ -92,7 +92,7 @@ const createOrder = async () => {
   const orderId = createOrderResponse.result
   // 模拟支付确认对话框
   uni.showModal({
-    content: '确认付款',
+    content: `确认付款 ￥${orderPre.value?.summary.totalPayPrice}元`,
     success: async (res) => {
       if (res.confirm) {
         try {
