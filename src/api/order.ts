@@ -30,7 +30,7 @@ export const getOrderPreAgainAPI = (orderId: string) => {
 }
 // 提交订单
 export const createOrderAPI = (data: OrderCreateParams) => {
-  return http({
+  return http<string>({
     method: 'POST',
     url: '/order/create',
     data,
@@ -49,5 +49,13 @@ export const getOrderDetailAPI = (id: string) => {
   return http<OrderResult>({
     method: 'GET',
     url: `/order/detail?id=${id}`,
+  })
+}
+
+// 模拟支付
+export const payOrderAPI = (id: string) => {
+  return http({
+    method: 'POST',
+    url: `/order/pay?id=${id}`,
   })
 }

@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { buyNowAPI, createOrderAPI, getOrderPreAgainAPI, getOrderPreAPI } from '@/api/order'
+import {
+  buyNowAPI,
+  createOrderAPI,
+  getOrderPreAgainAPI,
+  getOrderPreAPI,
+  payOrderAPI,
+} from '@/api/order'
 import { onLoad } from '@dcloudio/uni-app'
 import type { OrderPreResult } from '@/types/order'
 import { useSelectedAddress } from '@/stores/modules/address'
 import { baseImgUrl } from '@/constants'
+import { OrderState } from '@/api/constants'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -59,22 +66,49 @@ const selectedAddress = computed(() => {
 
 // 创建订单
 const createOrder = async () => {
-  // 判断是否有收货地址
+  // 检查是否选择了收货地址
   if (!selectedAddress.value?.id) {
     return uni.showToast({ icon: 'none', title: '请选择收货地址' })
   }
-  const res = await createOrderAPI({
-    addressId: selectedAddress.value?.id,
+
+  // 创建订单 API 调用
+  const createOrderResponse = await createOrderAPI({
+    addressId: selectedAddress.value.id,
     buyMsg: buyerMessage.value,
     deliveryTimeType: activeDelivery.value.type,
-    goods: orderPre.value!.goods.map((v) => ({ count: v.count, skuId: v.skuId })),
+    goods: orderPre.value!.goods.map((item) => ({ count: item.count, skuId: item.skuId })),
     payChannel: 2,
     payType: 1,
   })
-  // 订单ID
-  const id = res.result
-  // 跳转订单详情页面并关闭此页面
-  uni.redirectTo({ url: `/pagesOrder/detail/detail?id=${id}` })
+
+  // 错误处理
+  if (createOrderResponse.code !== '0') {
+    return uni.showToast({
+      icon: 'none',
+      title: createOrderResponse.msg || '创建订单失败',
+    })
+  }
+  // 获取订单 ID
+  const orderId = createOrderResponse.result
+  // 模拟支付确认对话框
+  uni.showModal({
+    content: '确认付款',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          // 模拟支付成功
+          await payOrderAPI(orderId)
+          // 跳转到订单支付详情页面并关闭当前页面
+          uni.redirectTo({ url: `/pagesOrder/payment/payment?id=${orderId}` })
+        } catch (error) {
+          uni.showToast({ icon: 'none', title: '支付失败，请重试' })
+        }
+      } else if (res.cancel) {
+        // 用户取消支付，跳转到订单列表页面
+        uni.redirectTo({ url: `/pagesOrder/list/list` })
+      }
+    },
+  })
 }
 
 // 加载数据
@@ -120,7 +154,7 @@ onLoad(() => {
           <view class="name ellipsis"> {{ goods.name }}</view>
           <view class="attrs">{{ goods.attrsText }}</view>
           <view class="prices">
-            <view class="pay-price symbol">{{ goods.price }}}</view>
+            <view class="pay-price symbol">{{ goods.price }}</view>
             <view class="price symbol">{{ goods.payPrice }}</view>
           </view>
           <view class="count">x{{ goods.count }}</view>
@@ -170,8 +204,8 @@ onLoad(() => {
       :class="{ disabled: selectedAddress ? '' : 'disabled' }"
       @tap="createOrder"
     >
-      提交订单</view
-    >
+      提交订单
+    </view>
   </view>
 </template>
 

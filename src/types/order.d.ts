@@ -147,7 +147,7 @@ export type OrderListResult = {
   /** 总记录数 */
   total: number
   /** 数据集合    [ 订单信息 ] */
-  items: OrderItem[]
+  records: OrderItem[]
   /** 当前页码 */
   page: number
   /** 总页数 */
