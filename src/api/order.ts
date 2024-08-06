@@ -60,3 +60,10 @@ export const payOrderAPI = (id: string) => {
     url: `/order/pay?id=${id}`,
   })
 }
+// 删除订单
+export const deleteOrderAPI = (id: string) => {
+  return http({
+    method: 'DELETE',
+    url: `/order/delete?id=${id}`,
+  })
+}

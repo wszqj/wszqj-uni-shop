@@ -11,7 +11,6 @@ import { onLoad } from '@dcloudio/uni-app'
 import type { OrderPreResult } from '@/types/order'
 import { useSelectedAddress } from '@/stores/modules/address'
 import { baseImgUrl } from '@/constants'
-import { OrderState } from '@/api/constants'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -92,7 +91,7 @@ const createOrder = async () => {
   const orderId = createOrderResponse.result
   // 模拟支付确认对话框
   uni.showModal({
-    content: `确认付款 ￥${orderPre.value?.summary.totalPayPrice}元`,
+    content: `确认付款 ￥${orderPre.value?.summary.totalPayPrice.toFixed(2)}元`,
     success: async (res) => {
       if (res.confirm) {
         try {

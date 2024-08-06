@@ -2,7 +2,7 @@
 import type { OrderItem, OrderListParams } from '@/types/order'
 import { onMounted, ref } from 'vue'
 import { OrderState, orderStateList } from '@/api/constants'
-import { getOrderDetailAPI, getOrderListAPI, payOrderAPI } from '@/api/order'
+import { deleteOrderAPI, getOrderDetailAPI, getOrderListAPI, payOrderAPI } from '@/api/order'
 import { baseImgUrl } from '@/constants'
 
 // 获取屏幕边界到安全区域距离
@@ -59,7 +59,7 @@ const onOrderPay = async (orderId: string) => {
   const res = await getOrderDetailAPI(orderId)
   // 模拟支付确认对话框
   uni.showModal({
-    content: `确认付款 ￥ ${res.result.payMoney} 元`,
+    content: `确认付款 ￥ ${res.result.payMoney.toFixed(2)} 元`,
     success: async (res) => {
       if (res.confirm) {
         try {
@@ -77,6 +77,31 @@ const onOrderPay = async (orderId: string) => {
     },
   })
 }
+
+// 删除订单
+const onOrderDelete = (orderId: string) => {
+  uni.showModal({
+    content: '确认删除该订单吗？',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await deleteOrderAPI(orderId)
+          uni.showToast({
+            icon: 'none',
+            title: '删除成功',
+          })
+          // 删除成功后，重新获取订单列表
+          await getMemberOrderData()
+        } catch (error) {
+          uni.showToast({
+            icon: 'none',
+            title: '删除失败，请重试',
+          })
+        }
+      }
+    },
+  })
+}
 </script>
 
 <template>
@@ -88,7 +113,13 @@ const onOrderPay = async (orderId: string) => {
         <!-- 订单状态文字 -->
         <text>{{ orderStateList[order.orderState].text }}</text>
         <!-- 待评价/已完成/已取消 状态: 展示删除订单 -->
-        <text v-if="order.orderState >= OrderState.DaiPingJia" class="icon-delete"></text>
+        <text
+          v-if="order.orderState >= OrderState.DaiPingJia"
+          class="icon-delete"
+          @tap="onOrderDelete(order.orderId)"
+        >
+          删除订单
+        </text>
       </view>
       <!-- 商品信息，点击商品跳转到订单详情，不是商品详情 -->
       <navigator
