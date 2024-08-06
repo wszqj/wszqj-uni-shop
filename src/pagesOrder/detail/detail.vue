@@ -298,12 +298,7 @@ onReady(() => {
       </view>
       <view class="footer">
         <view class="button" @tap="popup?.close?.()">取消</view>
-        <view
-          class="button primary"
-          @tap="
-            onCancelOrder(order!.id, reason)
-            popup?.close?.()
-          "
+        <view class="button primary" @tap="onCancelOrder(order!.id, reason), popup?.close?.()"
           >确认</view
         >
       </view>

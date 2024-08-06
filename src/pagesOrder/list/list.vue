@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import OrderList from '@/pagesOrder/list/components/OrderList.vue'
 
 // tabs 数据
@@ -17,6 +17,11 @@ const query = defineProps<{
 }>()
 // 滑块下标
 const activeIndex = ref(orderTabs.value.findIndex((v) => v.orderState === Number(query.type)))
+
+// 监听 activeIndex 变化，确保 Swiper 的当前项更新
+watch(activeIndex, (newIndex) => {
+  // 不需要执行额外操作，Swiper 会根据 activeIndex 自动更新
+})
 </script>
 
 <template>

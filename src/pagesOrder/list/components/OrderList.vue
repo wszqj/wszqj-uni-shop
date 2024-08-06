@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { OrderItem, OrderListParams } from '@/types/order'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { OrderState, orderStateList } from '@/api/constants'
 import { deleteOrderAPI, getOrderDetailAPI, getOrderListAPI, payOrderAPI } from '@/api/order'
 import { baseImgUrl } from '@/constants'
-
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -19,40 +18,63 @@ const queryParams: OrderListParams = {
   pageSize: 5,
   orderState: props.orderState,
 }
+// 是否已经加载完全
+const finish = ref(false)
 
 // 获取订单列表
 const orderList = ref<OrderItem[]>([])
+
+// 请求数据函数
 const getMemberOrderData = async () => {
-  const res = await getOrderListAPI(queryParams)
-  orderList.value = res.result.records
+  // 如果已经加载完成或者请求中，则不发起请求
+  if (finish.value) return
+  // 设置请求参数，防止异步问题
+  const params = { ...queryParams }
+  try {
+    const res = await getOrderListAPI(params)
+    // 如果是第一页，直接替换数据
+    if (params.page === 1) {
+      orderList.value = res.result.records
+    } else {
+      // 如果不是第一页，追加数据
+      orderList.value.push(...res.result.records)
+    }
+    // 更新加载状态
+    finish.value = res.result.pages <= params.page
+  } catch (error) {
+    // 可以增加错误处理逻辑
+    console.error('获取订单列表失败', error)
+  }
 }
+// 监听 props.orderState 的变化
+watch(
+  () => props.orderState,
+  (newOrderState) => {
+    // 更新请求参数
+    queryParams.orderState = newOrderState
+    queryParams.page = 1
+    finish.value = false
+    // 清空订单列表并重新请求数据
+    orderList.value = []
+  },
+)
+
+// 初始化数据
 onMounted(() => {
   getMemberOrderData()
 })
 
-// 是否已经加载完全
-const finish = ref(false)
-// 滚动触底
+// 滚动触底事件
 const onScrolltolower = async () => {
-  // 结束判断
-  if (finish.value === true) {
+  if (finish.value) {
     return uni.showToast({
       icon: 'none',
       title: '没有更多数据了~',
     })
   }
-  // 加载数据
-  let res = await getOrderListAPI(queryParams)
-  // 追加数据
-  orderList.value.push(...res.result.records)
-  // 分页条件
-  if (res.result.pages > queryParams.page) {
-    // 页码累加
-    queryParams.page++
-  } else {
-    finish.value = true
-  }
+  queryParams.page++
 }
+
 // 模拟支付
 const onOrderPay = async (orderId: string) => {
   // 获取订单详情
