@@ -67,3 +67,10 @@ export const deleteOrderAPI = (id: string) => {
     url: `/order/delete?id=${id}`,
   })
 }
+// 取消订单
+export const cancelOrderAPI = (id: string, reason: string) => {
+  return http({
+    method: 'PUT',
+    url: `/order/cancel?id=${id}&reason=${reason}`,
+  })
+}

@@ -3,7 +3,7 @@ import { userGuessList } from '@/composables'
 import { onMounted, ref } from 'vue'
 import HomeGuess from '@/components/HomeGuess.vue'
 import { onReady } from '@dcloudio/uni-app'
-import { getOrderDetailAPI, payOrderAPI } from '@/api/order'
+import { cancelOrderAPI, getOrderDetailAPI, payOrderAPI } from '@/api/order'
 import type { OrderResult } from '@/types/order'
 import { OrderState, orderStateList } from '@/api/constants'
 import { baseImgUrl } from '@/constants'
@@ -70,6 +70,21 @@ const onOrderPay = async (orderId: string) => {
       } else if (res.cancel) {
         // 用户取消支付，跳转到订单列表页面
         uni.redirectTo({ url: `/pagesOrder/list/list` })
+      }
+    },
+  })
+}
+// 取消订单
+const onCancelOrder = (id: string, reason: string) => {
+  uni.showModal({
+    content: '确认取消',
+    success: async (result) => {
+      if (result.confirm) {
+        // 调用接口
+        await cancelOrderAPI(id, reason)
+        // 提示
+        uni.showToast({ icon: 'success', title: '取消成功' })
+        order.value!.orderState = OrderState.YiQuXiao
       }
     },
   })
@@ -259,7 +274,7 @@ onReady(() => {
             再次购买
           </navigator>
           <!-- 待收货状态: 展示确认收货 -->
-          <view v-if="order.orderState === OrderState.DaiShouHuo" class="button"> 确认收货 </view>
+          <view v-if="order.orderState === OrderState.DaiShouHuo" class="button"> 确认收货</view>
           <!-- 待评价状态: 展示去评价 -->
           <view class="button" v-if="order.orderState === OrderState.DaiPingJia"> 去评价</view>
           <!-- 待评价/已完成/已取消 状态: 展示删除订单 -->
@@ -283,7 +298,14 @@ onReady(() => {
       </view>
       <view class="footer">
         <view class="button" @tap="popup?.close?.()">取消</view>
-        <view class="button primary">确认</view>
+        <view
+          class="button primary"
+          @tap="
+            onCancelOrder(order!.id, reason)
+            popup?.close?.()
+          "
+          >确认</view
+        >
       </view>
     </view>
   </uni-popup>
