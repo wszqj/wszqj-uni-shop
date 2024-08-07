@@ -1,11 +1,10 @@
 <script setup lang="ts">
 // 商品分类列表
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { CategoryTopItem } from '@/types/category'
 import { getCategoryListAPI } from '@/api/category'
 import { onLoad } from '@dcloudio/uni-app'
 import PageSkeleton from '@/pages/category/component/PageSkeleton.vue'
-import HomeSwiper from '@/components/HomeSwiper.vue'
 import { baseImgUrl } from '@/constants'
 
 const categoryList = ref<CategoryTopItem[]>([])
