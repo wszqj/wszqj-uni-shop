@@ -5,6 +5,7 @@ import type {
   OrderListResult,
   OrderPreResult,
   OrderResult,
+  PaymentSlipParams,
 } from '@/types/order'
 
 // 获取订单结算信息
@@ -45,6 +46,7 @@ export const getOrderListAPI = (query: OrderListParams) => {
     url: `/order/list?page=${query.page}&pageSize=${query.pageSize}&orderState=${query.orderState}`,
   })
 }
+
 // 获取订单详情
 export const getOrderDetailAPI = (id: string) => {
   return http<OrderResult>({
@@ -53,13 +55,13 @@ export const getOrderDetailAPI = (id: string) => {
   })
 }
 
-// 模拟支付
+/*// 模拟支付
 export const payOrderAPI = (id: string) => {
   return http({
     method: 'POST',
     url: `/order/pay?id=${id}`,
   })
-}
+}*/
 // 删除订单
 export const deleteOrderAPI = (id: string) => {
   return http({
@@ -72,5 +74,26 @@ export const cancelOrderAPI = (id: string, reason: string) => {
   return http({
     method: 'PUT',
     url: `/order/cancel?id=${id}&reason=${reason}`,
+  })
+}
+
+// 生成支付交易单
+export const applyPaymentSlipAPI = (data: PaymentSlipParams) => {
+  return http<string>({
+    method: 'POST',
+    url: `/pay/apply`,
+    data,
+  })
+}
+// 支付交易单
+export const payOrderAPI = (paymentNo: string, orderId: string, paymentType: number) => {
+  return http<string>({
+    method: 'POST',
+    url: `/pay/payOrder`,
+    data: {
+      paymentNo,
+      orderId,
+      paymentType,
+    },
   })
 }

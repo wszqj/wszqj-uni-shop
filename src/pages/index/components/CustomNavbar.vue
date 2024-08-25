@@ -7,18 +7,24 @@ const { safeAreaInsets } = uni.getSystemInfoSync()
   <view class="navbar" :style="{ paddingTop: safeAreaInsets?.top + 'px' }">
     <!-- logo文字 -->
     <view class="logo">
-      <image class="logo-image" src="@/static/images/logo.png"></image>
-      <text class="logo-text">新鲜 · 亲民 · 快捷</text>
+      <text class="logo-font">巨豪家具</text>
+      <text class="logo-text">一站式购物 · 服务一流</text>
     </view>
     <!-- 搜索条 -->
     <view class="search">
-      <text class="icon-search">搜索商品</text>
-      <text class="icon-scan"></text>
+      <input class="search-input" placeholder="搜索商品" />
+      <text class="icon-search"></text>
     </view>
   </view>
 </template>
 
 <style lang="scss">
+.logo-font {
+  font-size: 50rpx;
+  color: #fff;
+  font-family: '微软雅黑', serif;
+}
+
 /* 自定义导航条 */
 .navbar {
   background-image: url(@/static/images/navigator_bg.png);
@@ -27,16 +33,14 @@ const { safeAreaInsets } = uni.getSystemInfoSync()
   display: flex;
   flex-direction: column;
   padding-top: 20px;
+
   .logo {
     display: flex;
     align-items: center;
     height: 64rpx;
     padding-left: 30rpx;
     padding-top: 20rpx;
-    .logo-image {
-      width: 166rpx;
-      height: 39rpx;
-    }
+
     .logo-text {
       flex: 1;
       line-height: 28rpx;
@@ -47,6 +51,7 @@ const { safeAreaInsets } = uni.getSystemInfoSync()
       font-size: 26rpx;
     }
   }
+
   .search {
     display: flex;
     align-items: center;
@@ -59,11 +64,13 @@ const { safeAreaInsets } = uni.getSystemInfoSync()
     border-radius: 32rpx;
     background-color: rgba(255, 255, 255, 0.5);
   }
+
   .icon-search {
     &::before {
       margin-right: 10rpx;
     }
   }
+
   .icon-scan {
     font-size: 30rpx;
     padding: 15rpx;

@@ -5,10 +5,10 @@
 <template>
   <!-- 推荐专区 -->
   <view class="panel hot">
-    <view class="item" v-for="item in 4" :key="item">
+    <view class="item" v-for="(item, index) in 2" :key="index">
       <view class="title">
-        <text class="title-text">特惠推荐</text>
-        <text class="title-desc">精选全攻略</text>
+        <text class="title-text">活动大促</text>
+        <text class="title-desc">打折促销</text>
       </view>
       <navigator hover-class="none" url="/pages/hot/hot" class="cards">
         <image
@@ -31,7 +31,7 @@
 .hot {
   display: flex;
   flex-wrap: wrap;
-  min-height: 508rpx;
+  min-height: 254rpx;
   margin: 20rpx 20rpx 0;
   border-radius: 10rpx;
   background-color: #fff;

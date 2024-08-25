@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import {
-  buyNowAPI,
-  createOrderAPI,
-  getOrderPreAgainAPI,
-  getOrderPreAPI,
-  payOrderAPI,
-} from '@/api/order'
+import { buyNowAPI, createOrderAPI, getOrderPreAgainAPI, getOrderPreAPI } from '@/api/order'
 import { onLoad } from '@dcloudio/uni-app'
 import type { OrderPreResult } from '@/types/order'
 import { useSelectedAddress } from '@/stores/modules/address'
@@ -65,11 +59,14 @@ const selectedAddress = computed(() => {
 
 // 创建订单
 const createOrder = async () => {
+  // 检查购买的商品是否是一个
+  if (orderPre.value!.goods.length > 1) {
+    return uni.showToast({ icon: 'none', title: '一次只能购买一个商品' })
+  }
   // 检查是否选择了收货地址
   if (!selectedAddress.value?.id) {
     return uni.showToast({ icon: 'none', title: '请选择收货地址' })
   }
-
   // 创建订单 API 调用
   const createOrderResponse = await createOrderAPI({
     addressId: selectedAddress.value.id,
@@ -79,7 +76,6 @@ const createOrder = async () => {
     payChannel: 2,
     payType: 1,
   })
-
   // 错误处理
   if (createOrderResponse.code !== '0') {
     return uni.showToast({
@@ -89,25 +85,8 @@ const createOrder = async () => {
   }
   // 获取订单 ID
   const orderId = createOrderResponse.result
-  // 模拟支付确认对话框
-  uni.showModal({
-    content: `确认付款 ￥${orderPre.value?.summary.totalPayPrice.toFixed(2)}元`,
-    success: async (res) => {
-      if (res.confirm) {
-        try {
-          // 模拟支付成功
-          await payOrderAPI(orderId)
-          // 跳转到订单支付详情页面并关闭当前页面
-          uni.redirectTo({ url: `/pagesOrder/payment/payment?id=${orderId}` })
-        } catch (error) {
-          uni.showToast({ icon: 'none', title: '支付失败，请重试' })
-        }
-      } else if (res.cancel) {
-        // 用户取消支付，跳转到订单列表页面
-        uni.redirectTo({ url: `/pagesOrder/list/list` })
-      }
-    },
-  })
+  // 跳转到订单支付详情页面并关闭当前页面
+  return uni.redirectTo({ url: `/pagesOrder/detail/detail?id=${orderId}` })
 }
 
 // 加载数据

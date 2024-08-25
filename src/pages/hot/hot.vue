@@ -1,4 +1,3 @@
-// /src/pages/hot/hot.vue
 <script setup lang="ts">
 // 热门推荐页 标题和url
 const hotMap = [

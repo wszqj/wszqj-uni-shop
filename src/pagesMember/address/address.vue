@@ -10,7 +10,6 @@ const addressList = ref<AddressItem[]>([])
 //获取用户收货地址列表
 const getAddressList = async () => {
   const res = await getAddressListAPI()
-  console.log('res:', res.result)
   addressList.value = res.result
 }
 
@@ -20,8 +19,6 @@ const changeSelectedAddress = (item: AddressItem) => {
   const addressStore = useSelectedAddress()
   // 修改
   addressStore.selectedAddress = item
-  // 返回上一页
-  uni.navigateBack()
 }
 
 // 删除地址

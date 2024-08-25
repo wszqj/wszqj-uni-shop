@@ -3,8 +3,14 @@ import { userGuessList } from '@/composables'
 import { onMounted, ref } from 'vue'
 import HomeGuess from '@/components/HomeGuess.vue'
 import { onReady } from '@dcloudio/uni-app'
-import { cancelOrderAPI, getOrderDetailAPI, payOrderAPI } from '@/api/order'
-import type { OrderResult } from '@/types/order'
+import {
+  cancelOrderAPI,
+  getOrderDetailAPI,
+  applyPaymentSlipAPI,
+  payOrderAPI,
+  deleteOrderAPI,
+} from '@/api/order'
+import type { OrderResult, PaymentSlipParams } from '@/types/order'
 import { OrderState, orderStateList } from '@/api/constants'
 import { baseImgUrl } from '@/constants'
 import uniPopup from '@dcloudio/uni-ui/lib/uni-popup/uni-popup.vue'
@@ -38,8 +44,11 @@ const query = defineProps<{
 }>()
 
 // 订单超时
-const onTimeUp = () => {
+const onTimeUp = async () => {
+  // 修改前端数据
   order.value!.orderState = OrderState.YiQuXiao
+  // 调用接口更新后端数据
+  await cancelOrderAPI(query.id, '订单超时')
 }
 
 // 订单
@@ -50,23 +59,41 @@ const getOrderDetail = async () => {
   order.value = res.result
 }
 
-// 模拟支付
+// 订单支付
 const onOrderPay = async (orderId: string) => {
   // 获取订单详情
-  const res = await getOrderDetailAPI(orderId)
+  const orderRes = await getOrderDetailAPI(orderId)
+  // 准备请求参数
+  const params: PaymentSlipParams = {
+    paymentNo: orderId,
+    paymentType: 1,
+    orderId: orderId,
+    amount: orderRes.result.payMoney,
+    paymentStatus: 1,
+  }
+  // 生成支付交易单
+  const applyRes = await applyPaymentSlipAPI(params)
+  if (applyRes.code !== '0') {
+    return uni.showToast({
+      icon: 'none',
+      title: applyRes.msg || '支付失败请重试',
+    })
+  }
   // 模拟支付确认对话框
   uni.showModal({
-    content: `确认付款 ￥ ${res.result.payMoney.toFixed(2)} 元`,
+    content: `确认付款 ￥ ${orderRes.result.payMoney.toFixed(2)} 元`,
     success: async (res) => {
       if (res.confirm) {
-        try {
-          // 模拟支付成功
-          await payOrderAPI(orderId)
-          // 跳转到订单支付详情页面并关闭当前页面
-          uni.redirectTo({ url: `/pagesOrder/payment/payment?id=${orderId}` })
-        } catch (error) {
-          uni.showToast({ icon: 'none', title: '支付失败，请重试' })
+        // 尝试模拟支付
+        const payRes = await payOrderAPI(applyRes.result, orderId, 1)
+        if (payRes.code !== '0') {
+          return uni.showToast({
+            icon: 'none',
+            title: payRes.msg || '支付失败请重试',
+          })
         }
+        // 跳转到订单支付详情页面并关闭当前页面
+        uni.redirectTo({ url: `/pagesOrder/payment/payment?id=${orderId}` })
       } else if (res.cancel) {
         // 用户取消支付，跳转到订单列表页面
         uni.redirectTo({ url: `/pagesOrder/list/list` })
@@ -74,6 +101,7 @@ const onOrderPay = async (orderId: string) => {
     },
   })
 }
+
 // 取消订单
 const onCancelOrder = (id: string, reason: string) => {
   uni.showModal({
@@ -83,8 +111,37 @@ const onCancelOrder = (id: string, reason: string) => {
         // 调用接口
         await cancelOrderAPI(id, reason)
         // 提示
-        uni.showToast({ icon: 'success', title: '取消成功' })
+        const res = await uni.showToast({ icon: 'success', title: '取消成功' })
+        if (res !== '0') {
+          await uni.showToast({
+            icon: 'none',
+            title: res.msg || '订单取消失败请重试',
+          })
+          uni.redirectTo({ url: `/pagesOrder/list/list` })
+        }
         order.value!.orderState = OrderState.YiQuXiao
+        uni.redirectTo({ url: `/pagesOrder/list/list` })
+      }
+    },
+  })
+}
+
+// 删除订单
+const onOrderDelete = (orderId: string) => {
+  uni.showModal({
+    content: '确认删除该订单吗？',
+    success: async (res) => {
+      if (res.confirm) {
+        const res = await deleteOrderAPI(orderId)
+        if (res.code !== '0') {
+          await uni.showToast({
+            icon: 'none',
+            title: res.msg || '删除失败，请重试',
+          })
+          uni.redirectTo({ url: `/pagesOrder/list/list` })
+        }
+        // 删除成功后，重新获取订单列表
+        uni.redirectTo({ url: `/pagesOrder/list/list` })
       }
     },
   })
@@ -162,7 +219,7 @@ onReady(() => {
               @timeup="onTimeUp"
             />
           </view>
-          <view class="button">去支付</view>
+          <view class="button" @tap="onOrderPay(order.id)">去支付</view>
         </template>
         <!-- 其他订单状态:展示再次购买按钮 -->
         <template v-else>
@@ -278,7 +335,11 @@ onReady(() => {
           <!-- 待评价状态: 展示去评价 -->
           <view class="button" v-if="order.orderState === OrderState.DaiPingJia"> 去评价</view>
           <!-- 待评价/已完成/已取消 状态: 展示删除订单 -->
-          <view class="button delete" v-if="order.orderState >= OrderState.DaiPingJia">
+          <view
+            class="button delete"
+            v-if="order.orderState >= OrderState.DaiPingJia"
+            @tap="onOrderDelete(order.id)"
+          >
             删除订单
           </view>
         </template>
@@ -299,8 +360,8 @@ onReady(() => {
       <view class="footer">
         <view class="button" @tap="popup?.close?.()">取消</view>
         <view class="button primary" @tap="onCancelOrder(order!.id, reason), popup?.close?.()"
-          >确认</view
-        >
+          >确认
+        </view>
       </view>
     </view>
   </uni-popup>

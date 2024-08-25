@@ -55,7 +55,7 @@ defineExpose({
 </script>
 
 <template>
-  <!-- 猜你喜欢 -->
+  <!-- 商品列表 -->
   <view class="caption">
     <text class="text">商品列表</text>
   </view>

@@ -13,12 +13,21 @@ import { baseImgUrl } from '@/constants'
 // 获取系统信息
 const { safeAreaInsets } = uni.getSystemInfoSync()
 const safeArea = ref<number>(safeAreaInsets!.bottom)
-
+// 下拉刷新状态
+const isTriggered = ref(false)
 // 获取页面参数
 const props = defineProps<{
   type: string
 }>()
-
+// 下拉刷新
+const onPullDownRefresh = async () => {
+  // 开启动画
+  isTriggered.value = true
+  // 加载购物车列表
+  await getCartList()
+  // 关闭动画
+  isTriggered.value = false
+}
 // 用户信息
 const memberStore = useMemberStore()
 // 判断页面类型，决定安全区的底部间距
@@ -98,7 +107,7 @@ const totalPrice = computed(() => {
   return total.toFixed(2)
 })
 
-// 去结算 TODO 未完成
+// 去结算
 const toBuy = () => {
   // 如果未选商品
   if (selectedCount.value < 1) {
@@ -126,7 +135,14 @@ watch(
 </script>
 
 <template>
-  <scroll-view :style="{ paddingBottom: safeArea + 'px' }" scroll-y="true" class="scroll-view">
+  <scroll-view
+    refresher-enabled="true"
+    :refresher-triggered="isTriggered"
+    @refresherrefresh="onPullDownRefresh"
+    :style="{ paddingBottom: safeArea + 'px' }"
+    scroll-y="true"
+    class="scroll-view"
+  >
     <!-- 已登录: 显示购物车 -->
     <template v-if="memberStore?.profile">
       <!-- 购物车列表 -->

@@ -46,7 +46,7 @@ export const http = <T>(options: UniApp.RequestOptions) => {
           } else {
             // 处理业务错误
             uni.showToast({
-              title: data.msg || '请求错误',
+              title: data.msg || '未知错误',
               icon: 'none',
             })
             reject(data)
@@ -63,8 +63,8 @@ export const http = <T>(options: UniApp.RequestOptions) => {
         } else {
           // 其他错误信息，根据后端的数据返回进行提示
           uni.showToast({
-            title: '请求错误',
-            icon: 'none',
+            title: '服务异常',
+            icon: 'error',
           })
           reject(res)
         }

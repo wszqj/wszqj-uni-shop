@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // 获取屏幕边界到安全区域距离
 import { useMemberStore } from '@/stores'
-import type { ProfileDetail, ProfileParams } from '@/types/member'
+import type { Gender, ProfileDetail, ProfileParams } from '@/types/member'
 import { ref } from 'vue'
 import { getProfileDetailAPI, updateProfileAPI } from '@/api/user'
 import { onLoad } from '@dcloudio/uni-app'
@@ -94,6 +94,7 @@ const getProfileDetail = async () => {
   const res = await getProfileDetailAPI()
   // 数据回显
   profile.value = res.result
+  console.log(profile.value)
 }
 // 更新用户年龄
 const onBirthdayChange: UniHelper.DatePickerOnChange = (ev) => {
@@ -103,6 +104,11 @@ const onBirthdayChange: UniHelper.DatePickerOnChange = (ev) => {
 const onFullLocationChange: UniHelper.RegionPickerOnChange = (ev) => {
   // 更新前端数据
   profile.value.fullLocation = ev.detail.value.join(' ')
+}
+// 更新用户性别
+const onGenderChange: UniHelper.RadioGroupOnChange = (ev) => {
+  profile.value.gender = ev.detail.value as Gender
+  console.log(ev.detail.value as Gender)
 }
 // 修改参数
 const profileParams = ref<ProfileParams>()
@@ -123,10 +129,20 @@ const onSubmit = async () => {
   }
   // 调用接口
   const res = await updateProfileAPI(profileParams.value)
+  if (res.code !== '0') {
+    return uni.showToast({
+      icon: 'none',
+      title: res.msg && res.msg.length ? res.msg : '更新失败',
+    })
+  }
+  // 更新用户信息
+  const pr = store.profile
+  pr.nickname = res.result.nickname
+  store.setProfile(pr)
   // 显示成功消息
   uni.showToast({
     icon: 'success',
-    title: res.msg && res.msg.length ? res.msg : '更新成功',
+    title: '更新成功',
   })
   // 延迟返回上一页
   setTimeout(() => {
@@ -168,13 +184,13 @@ onLoad(() => {
         </view>
         <view class="form-item">
           <text class="label">性别</text>
-          <radio-group>
+          <radio-group @change="onGenderChange">
             <label class="radio">
-              <radio value="男" color="#27ba9b" :checked="profile?.gender === '男性'" />
+              <radio value="男性" color="#27ba9b" :checked="profile?.gender === '男性'" />
               男
             </label>
             <label class="radio">
-              <radio value="女" color="#27ba9b" :checked="profile?.gender === '女性'" />
+              <radio value="女性" color="#27ba9b" :checked="profile?.gender === '女性'" />
               女
             </label>
           </radio-group>

@@ -1,8 +1,14 @@
 <script setup lang="ts">
-import type { OrderItem, OrderListParams } from '@/types/order'
+import type { OrderItem, OrderListParams, PaymentSlipParams } from '@/types/order'
 import { onMounted, ref, watch } from 'vue'
 import { OrderState, orderStateList } from '@/api/constants'
-import { deleteOrderAPI, getOrderDetailAPI, getOrderListAPI, payOrderAPI } from '@/api/order'
+import {
+  applyPaymentSlipAPI,
+  deleteOrderAPI,
+  getOrderDetailAPI,
+  getOrderListAPI,
+  payOrderAPI,
+} from '@/api/order'
 import { baseImgUrl } from '@/constants'
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -23,33 +29,32 @@ const finish = ref(false)
 
 // 获取订单列表
 const orderList = ref<OrderItem[]>([])
-
 // 请求数据函数
 const getMemberOrderData = async () => {
   // 如果已经加载完成或者请求中，则不发起请求
   if (finish.value) return
-  // 设置请求参数，防止异步问题
-  const params = { ...queryParams }
   try {
-    const res = await getOrderListAPI(params)
+    const res = await getOrderListAPI(queryParams)
     // 如果是第一页，直接替换数据
-    if (params.page === 1) {
+    if (queryParams.page === 1) {
       orderList.value = res.result.records
     } else {
       // 如果不是第一页，追加数据
       orderList.value.push(...res.result.records)
     }
     // 更新加载状态
-    finish.value = res.result.pages <= params.page
+    finish.value = res.result.pages <= queryParams.page
   } catch (error) {
     // 可以增加错误处理逻辑
     console.error('获取订单列表失败', error)
   }
 }
+
 // 监听 props.orderState 的变化
 watch(
   () => props.orderState,
   (newOrderState) => {
+    console.log('监听到了~~~')
     // 更新请求参数
     queryParams.orderState = newOrderState
     queryParams.page = 1
@@ -59,11 +64,6 @@ watch(
   },
 )
 
-// 初始化数据
-onMounted(() => {
-  getMemberOrderData()
-})
-
 // 滚动触底事件
 const onScrolltolower = async () => {
   if (finish.value) {
@@ -72,26 +72,60 @@ const onScrolltolower = async () => {
       title: '没有更多数据了~',
     })
   }
+  // 调用api
+  const res = await getOrderListAPI(queryParams)
+  // 如果是第一页，直接替换数据
+  if (queryParams.page === 1) {
+    orderList.value = res.result.records
+  } else {
+    // 如果不是第一页，追加数据
+    orderList.value.push(...res.result.records)
+  }
+  // 更新加载状态
+  finish.value = res.result.pages <= queryParams.page
   queryParams.page++
 }
 
-// 模拟支付
+// 初始化数据
+onMounted(() => {
+  getMemberOrderData()
+})
+
+// 订单支付
 const onOrderPay = async (orderId: string) => {
   // 获取订单详情
-  const res = await getOrderDetailAPI(orderId)
+  const orderRes = await getOrderDetailAPI(orderId)
+  // 准备请求参数
+  const params: PaymentSlipParams = {
+    paymentNo: orderId,
+    paymentType: 1,
+    orderId: orderId,
+    amount: orderRes.result.payMoney,
+    paymentStatus: 1,
+  }
+  // 生成支付交易单
+  const applyRes = await applyPaymentSlipAPI(params)
+  if (applyRes.code !== '0') {
+    return uni.showToast({
+      icon: 'none',
+      title: applyRes.msg || '支付失败，请重试',
+    })
+  }
   // 模拟支付确认对话框
   uni.showModal({
-    content: `确认付款 ￥ ${res.result.payMoney.toFixed(2)} 元`,
+    content: `确认付款 ￥ ${orderRes.result.payMoney.toFixed(2)} 元`,
     success: async (res) => {
       if (res.confirm) {
-        try {
-          // 模拟支付成功
-          await payOrderAPI(orderId)
-          // 跳转到订单支付详情页面并关闭当前页面
-          uni.redirectTo({ url: `/pagesOrder/payment/payment?id=${orderId}` })
-        } catch (error) {
-          uni.showToast({ icon: 'none', title: '支付失败，请重试' })
+        // 尝试模拟支付
+        const payRes = await payOrderAPI(applyRes.result, orderId, 1)
+        if (payRes.code !== '0') {
+          return uni.showToast({
+            icon: 'none',
+            title: payRes.msg || '支付失败，请重试',
+          })
         }
+        // 跳转到订单支付详情页面并关闭当前页面
+        uni.redirectTo({ url: `/pagesOrder/payment/payment?id=${orderId}` })
       } else if (res.cancel) {
         // 用户取消支付，跳转到订单列表页面
         uni.redirectTo({ url: `/pagesOrder/list/list` })
@@ -106,20 +140,15 @@ const onOrderDelete = (orderId: string) => {
     content: '确认删除该订单吗？',
     success: async (res) => {
       if (res.confirm) {
-        try {
-          await deleteOrderAPI(orderId)
-          uni.showToast({
+        const res = await deleteOrderAPI(orderId)
+        if (res.code !== '0') {
+          return uni.showToast({
             icon: 'none',
-            title: '删除成功',
-          })
-          // 删除成功后，重新获取订单列表
-          await getMemberOrderData()
-        } catch (error) {
-          uni.showToast({
-            icon: 'none',
-            title: '删除失败，请重试',
+            title: res.msg || '删除失败，请重试',
           })
         }
+        // 删除成功后，重新获取订单列表
+        await getMemberOrderData()
       }
     },
   })

@@ -2,7 +2,7 @@
 // 获取屏幕边界到安全区域距离
 import CustomNavbar from '@/pages/index/components/CustomNavbar.vue'
 import HomeSwiper from '@/components/HomeSwiper.vue'
-import CategoryPanel from '@/pages/index/components/CategoryPanel.vue'
+import QuickPanel from '@/pages/index/components/QuickPanel.vue'
 import HotPanel from '@/pages/index/components/HotPanel.vue'
 import HomeGuess from '@/components/HomeGuess.vue'
 import { onMounted, ref } from 'vue'
@@ -68,8 +68,8 @@ onMounted(async () => {
   >
     <!--  自定义轮播图-->
     <HomeSwiper :list="AdvertisementList" />
-    <!--  分类组件-->
-    <CategoryPanel />
+    <!--  组件-->
+    <QuickPanel />
     <!--  热门推荐-->
     <HotPanel />
     <!--猜你喜欢-->

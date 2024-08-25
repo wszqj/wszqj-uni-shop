@@ -1,5 +1,19 @@
 <script setup lang="ts">
-//
+import { useMemberStore } from '@/stores'
+
+const memberStore = useMemberStore()
+// 用户退出登录
+const quitLogin = () => {
+  uni.showModal({
+    content: '确认退出登录吗？',
+    success: (res) => {
+      if (res.confirm) {
+        memberStore.clearProfile()
+        uni.navigateBack()
+      }
+    },
+  })
+}
 </script>
 
 <template>
@@ -22,7 +36,7 @@
     </view>
     <!-- 操作按钮 -->
     <view class="action">
-      <view class="button">退出登录</view>
+      <view class="button" @tap="quitLogin">退出登录</view>
     </view>
   </view>
 </template>
@@ -42,6 +56,7 @@ page {
   background-color: #fff;
   margin-bottom: 20rpx;
   border-radius: 10rpx;
+
   .item {
     line-height: 90rpx;
     padding-left: 10rpx;
@@ -52,19 +67,23 @@ page {
     text-align: left;
     border-radius: 0;
     background-color: #fff;
+
     &::after {
       width: auto;
       height: auto;
       left: auto;
       border: none;
     }
+
     &:first-child {
       border: none;
     }
+
     &::after {
       right: 5rpx;
     }
   }
+
   .arrow::after {
     content: '\e6c2';
     position: absolute;
@@ -83,6 +102,7 @@ page {
   margin-top: 40rpx;
   font-size: 32rpx;
   color: #333;
+
   .button {
     background-color: #fff;
     margin-bottom: 20rpx;

@@ -29,7 +29,7 @@ export const getProfileDetailAPI = () => {
 
 // 修改个人信息
 export const updateProfileAPI = (data: ProfileParams) => {
-  return http({
+  return http<ProfileDetail>({
     method: 'PUT',
     url: '/user/update',
     data,

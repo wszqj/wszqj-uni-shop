@@ -139,6 +139,7 @@ export type LogisticItem = {
 }
 
 import type { PageParams } from '@/types/global'
+
 /** 订单列表参数 */
 export type OrderListParams = PageParams & { orderState: number }
 
@@ -178,4 +179,16 @@ export type OrderItem = {
   orderState: number
   // 商品总价
   totalPrice: number
+}
+export type PaymentSlipParams = {
+  // 支付单号
+  paymentNo: string
+  // 支付类型
+  paymentType: number
+  // 订单ID
+  orderId: string
+  // 支付金额
+  amount: number
+  // 支付状态
+  paymentStatus: number
 }

@@ -3,6 +3,7 @@
 import HomeGuess from '@/components/HomeGuess.vue'
 import { useMemberStore } from '@/stores'
 import { userGuessList } from '@/composables'
+
 const baseImgUrl = 'http://localhost:8081'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -28,7 +29,7 @@ const { guessRef, onScrolltolower } = userGuessList()
           <image class="avatar" mode="aspectFill" :src="baseImgUrl + store.profile?.avatar"></image>
         </navigator>
         <view class="meta">
-          <view class="nickname"> {{ store.profile?.nickname || store.profile?.account }} </view>
+          <view class="nickname"> {{ store.profile?.nickname || store.profile?.account }}</view>
           <navigator class="extra" url="/pagesMember/profile/profile" hover-class="none">
             <text class="update">更新头像昵称</text>
           </navigator>
@@ -59,28 +60,43 @@ const { guessRef, onScrolltolower } = userGuessList()
     <!-- 我的订单 -->
     <view class="orders">
       <view class="title">
-        我的订单
-        <navigator class="navigator" url="/pagesOrder/list/list?type=0" hover-class="none">
-          查看全部订单<text class="icon-right"></text>
-        </navigator>
+        个人中心
+        <!--              <navigator class="navigator" :url="`/pagesOrder/list/list?type=0`" hover-class="none">
+                        查看全部订单<text class="icon-right"></text>
+                      </navigator>-->
       </view>
       <view class="section">
         <!-- 订单 -->
-        <navigator
-          v-for="item in orderTypes"
-          :key="item.type"
-          :class="item.icon"
-          :url="`/pagesOrder/list/list?type=${item.type}`"
-          class="navigator"
-          hover-class="none"
-        >
-          {{ item.text }}
-        </navigator>
+        <!--        <navigator
+                  v-for="item in orderTypes"
+                  :key="item.type"
+                  :class="item.icon"
+                  :url="`/pagesOrder/list/list?type=${item.type}`"
+                  class="navigator"
+                  hover-class="none"
+                >
+                  {{ item.text }}
+                </navigator>-->
         <!-- 客服 -->
-        <button class="contact icon-handset" open-type="contact">售后</button>
+        <!--        <button class="contact icon-handset" open-type="contact">售后</button>-->
+
+        <navigator class="contact" :url="`/pagesOrder/list/list?type=0`" hover-class="none">
+          <div class="order-icon"></div>
+          订单
+        </navigator>
+        <button class="contact">
+          <div class="coupon-icon"></div>
+          优惠
+        </button>
+        <button class="contact">
+          <div class="appointment-icon"></div>
+          预约
+        </button>
+        <!--        <button class="contact icon-handset">预约</button>-->
+        <!--        <button class="contact icon-handset" open-type="contact">售后</button>-->
       </view>
     </view>
-    <!-- 猜你喜欢 -->
+    <!-- 商品列表 -->
     <view class="guess">
       <HomeGuess ref="guessRef" />
     </view>
@@ -170,7 +186,7 @@ page {
   }
 }
 
-/* 我的订单 */
+/* 我的 */
 .orders {
   position: relative;
   z-index: 99;
@@ -198,17 +214,20 @@ page {
     display: flex;
     justify-content: space-between;
     padding: 40rpx 20rpx 10rpx;
+
     .navigator,
     .contact {
       text-align: center;
       font-size: 24rpx;
       color: #333;
+
       &::before {
         display: block;
         font-size: 60rpx;
         color: #ff9545;
       }
     }
+
     .contact {
       padding: 0;
       margin: 0;
@@ -217,6 +236,36 @@ page {
       line-height: inherit;
     }
   }
+}
+
+.order-icon {
+  margin-top: 0;
+  width: 60rpx;
+  height: 60rpx;
+  background-image: url('../../static/images/order_icon.png');
+  background-size: 60rpx 60rpx; /* 设置背景图尺寸 */
+  background-repeat: no-repeat; /* 防止背景图重复 */
+  background-position: center; /* 居中显示背景图 */
+}
+
+.coupon-icon {
+  margin-top: 0;
+  width: 60rpx;
+  height: 60rpx;
+  background-image: url('../../static/images/coupon_icon.png');
+  background-size: 60rpx 60rpx; /* 设置背景图尺寸 */
+  background-repeat: no-repeat; /* 防止背景图重复 */
+  background-position: center; /* 居中显示背景图 */
+}
+
+.appointment-icon {
+  margin-top: 0;
+  width: 60rpx;
+  height: 60rpx;
+  background-image: url('../../static/images/appointment_icon.png');
+  background-size: 60rpx 60rpx; /* 设置背景图尺寸 */
+  background-repeat: no-repeat; /* 防止背景图重复 */
+  background-position: center; /* 居中显示背景图 */
 }
 
 /* 猜你喜欢 */

@@ -17,8 +17,10 @@ const splitId = () => {
     const ids = query.id.split(',')
     const secondId = ids.length > 1
     if (secondId) {
+      // 用户一次购买多个商品
       url.value = `/pagesOrder/list/list`
     } else {
+      // 用户一次购买一个商品
       url.value = `/pagesOrder/detail/detail?id=${query.id}`
     }
   } catch (error) {

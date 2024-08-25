@@ -11,7 +11,7 @@ import type {
 export const getGoodsListAPI = (data?: GoodsListParams) => {
   return http<PageResult<GoodsListVO>>({
     method: 'GET',
-    url: `/home/list?page=${data?.page}&pageSize=${data?.pageSize}&name=${data?.name}`,
+    url: `/goods/like/list?page=${data?.page}&pageSize=${data?.pageSize}&name=${data?.name}`,
     data,
   })
 }
@@ -20,7 +20,7 @@ export const getGoodsListAPI = (data?: GoodsListParams) => {
 export const getGoodsDetailAPI = (id: number) => {
   return http<GoodsDetail>({
     method: 'GET',
-    url: '/home/detail',
+    url: '/goods/detail',
     data: {
       id,
     },
@@ -31,6 +31,6 @@ export const getGoodsDetailAPI = (id: number) => {
 export const getAdvertisementListAPI = () => {
   return http<Advertisement[]>({
     method: 'GET',
-    url: '/home/advertisement',
+    url: '/advertisement/advertisement',
   })
 }
