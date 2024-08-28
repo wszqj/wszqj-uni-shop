@@ -50,7 +50,14 @@ export type Advertisement = {
    */
   status: number
 }
-
+export type AppointmentItem = {
+  id: number
+  name: string
+  phone: string
+  desc: string
+  time: string
+  status: number
+}
 // 基础实体类型
 interface BaseEntity {
   id: string

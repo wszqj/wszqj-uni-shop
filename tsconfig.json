@@ -9,7 +9,7 @@
       "@/*": ["./src/*"]
     },
     "lib": ["esnext", "dom"],
-    "types": ["@dcloudio/types", "miniprogram-api-typings", "@uni-helper/uni-app-types"]
+    "types": ["@dcloudio/types", "miniprogram-api-typings", "@uni-helper/uni-app-types", "uview-plus/types"]
   },
   "vueCompilerOptions": {
     "nativeTags": ["block", "component", "template", "slot"]

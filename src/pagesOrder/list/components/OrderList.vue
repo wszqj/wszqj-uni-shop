@@ -54,7 +54,6 @@ const getMemberOrderData = async () => {
 watch(
   () => props.orderState,
   (newOrderState) => {
-    console.log('监听到了~~~')
     // 更新请求参数
     queryParams.orderState = newOrderState
     queryParams.page = 1

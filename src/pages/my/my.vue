@@ -84,14 +84,15 @@ const { guessRef, onScrolltolower } = userGuessList()
           <div class="order-icon"></div>
           订单
         </navigator>
+
         <button class="contact">
           <div class="coupon-icon"></div>
           优惠
         </button>
-        <button class="contact">
+        <navigator class="contact" :url="`/pagesMember/appointment/appointment`" hover-class="none">
           <div class="appointment-icon"></div>
           预约
-        </button>
+        </navigator>
         <!--        <button class="contact icon-handset">预约</button>-->
         <!--        <button class="contact icon-handset" open-type="contact">售后</button>-->
       </view>
@@ -113,8 +114,8 @@ page {
 .viewport {
   height: 100%;
   background-repeat: no-repeat;
-  background-image: url(https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/center_bg.png);
-  background-size: 100% auto;
+  background-image: url(@/static/images/my_bg.png);
+  background-size: 100% 350rpx;
 }
 
 /* 用户信息 */

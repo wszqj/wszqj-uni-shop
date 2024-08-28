@@ -1,11 +1,13 @@
 import { http } from '@/utils/http'
 import type {
   Advertisement,
+  AppointmentItem,
   GoodsDetail,
   GoodsListParams,
   GoodsListVO,
   PageResult,
 } from '@/types/home'
+import type { Appointment } from '@/types/appointment'
 
 // 获取商品列表
 export const getGoodsListAPI = (data?: GoodsListParams) => {

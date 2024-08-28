@@ -13,7 +13,8 @@ onHide(() => {
 </script>
 
 <style lang="scss">
-@import '../node_modules/uview-plus/theme.scss';
+/* 注意要写在第一行，同时给style标签加入lang="scss"属性 */
+@import 'uview-plus/index.scss';
 // 字体图标
 @import '@/styles/fonts.scss';
 /* 注意要写在第一行，同时给style标签加入lang="scss"属性 */

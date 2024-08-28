@@ -27,7 +27,7 @@ const { safeAreaInsets } = uni.getSystemInfoSync()
 
 /* 自定义导航条 */
 .navbar {
-  background-image: url(@/static/images/navigator_bg.png);
+  background-image: url(@/static/images/navigator_bg3.png);
   background-size: cover;
   position: relative;
   display: flex;

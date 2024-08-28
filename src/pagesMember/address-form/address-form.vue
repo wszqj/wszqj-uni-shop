@@ -25,7 +25,10 @@ const rules = {
   phone: {
     rules: [
       { required: true, errorMessage: '请输入联系方式' },
-      { pattern: /^1[3-9]\d{9}$/, errorMessage: '手机号格式不正确' },
+      {
+        pattern: /^1([38][0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|9[89])\d{8}$/,
+        errorMessage: '手机号格式不正确',
+      },
     ],
   },
   fullLocation: {
@@ -51,14 +54,12 @@ const regionChange: UniHelper.RegionPickerOnChange = (ev) => {
 
 // 提交表单
 const onSubmit = async () => {
-  console.log(form.value)
   try {
     // 表单校验
     await formRef.value?.validate?.()
   } catch {
     // 如果表单校验未通过，处理并显示校验错误信息
-    uni.showToast({ icon: 'none', title: '请将信息完善' })
-    return
+    return uni.showToast({ icon: 'none', title: '请将信息完善' })
   }
   if (query.id) {
     // 添加数据
