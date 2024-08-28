@@ -5,26 +5,6 @@ import type { ShopInfo } from '@/types/shopInfo'
 import { baseImgUrl } from '@/constants'
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
-const title = ref('一站式购物，服务一流')
-const subTitle = ref('巨豪家具')
-const welcomeText = ref('巨豪家具，欢迎您')
-
-const thumb = ref(
-  'https://img12.360buyimg.com/n7/jfs/t1/102191/19/9072/330688/5e0af7cfE17698872/c91c00d713bf729a.jpg',
-)
-
-// 店铺图片列表
-const list = ref([
-  {
-    src: 'https://gtd.alicdn.com/sns_logo/i1/TB124_3NXXXXXasXVXXSutbFXXX.jpg_240x240xz.jpg',
-  },
-  {
-    src: 'https://gtd.alicdn.com/sns_logo/i7/TB1IWtgQFXXXXcmXFXXSutbFXXX.jpg_240x240xz.jpg',
-  },
-  {
-    src: 'https://gtd.alicdn.com/sns_logo/i1/TB1_f_PLXXXXXbVXpXXSutbFXXX.jpg_240x240xz.jpg',
-  },
-])
 // 店铺信息
 const shopInfo = ref<ShopInfo>({} as ShopInfo)
 // 获取店铺信息
@@ -42,7 +22,7 @@ onMounted(() => {
 </script>
 <template>
   <view>
-    <up-notice-bar :text="welcomeText"></up-notice-bar>
+    <up-notice-bar :text="shopInfo.notice"></up-notice-bar>
   </view>
   <view v-if="shopInfo">
     <up-card
