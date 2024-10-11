@@ -59,42 +59,24 @@ const { guessRef, onScrolltolower } = userGuessList()
     </view>
     <!-- 我的订单 -->
     <view class="orders">
-      <view class="title">
-        个人中心
-        <!--              <navigator class="navigator" :url="`/pagesOrder/list/list?type=0`" hover-class="none">
-                        查看全部订单<text class="icon-right"></text>
-                      </navigator>-->
-      </view>
+      <view class="title"> 个人中心 </view>
       <view class="section">
-        <!-- 订单 -->
-        <!--        <navigator
-                  v-for="item in orderTypes"
-                  :key="item.type"
-                  :class="item.icon"
-                  :url="`/pagesOrder/list/list?type=${item.type}`"
-                  class="navigator"
-                  hover-class="none"
-                >
-                  {{ item.text }}
-                </navigator>-->
-        <!-- 客服 -->
-        <!--        <button class="contact icon-handset" open-type="contact">售后</button>-->
-
         <navigator class="contact" :url="`/pagesOrder/list/list?type=0`" hover-class="none">
           <div class="order-icon"></div>
           订单
         </navigator>
-
-        <button class="contact">
+        <navigator
+          class="contact"
+          :url="`/pagesMember/myCoupon/myCoupon?type=1`"
+          hover-class="none"
+        >
           <div class="coupon-icon"></div>
           优惠
-        </button>
+        </navigator>
         <navigator class="contact" :url="`/pagesMember/appointment/appointment`" hover-class="none">
           <div class="appointment-icon"></div>
           预约
         </navigator>
-        <!--        <button class="contact icon-handset">预约</button>-->
-        <!--        <button class="contact icon-handset" open-type="contact">售后</button>-->
       </view>
     </view>
     <!-- 商品列表 -->

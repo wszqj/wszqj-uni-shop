@@ -11,11 +11,7 @@ const hotMap = [
 <template>
   <view class="viewport">
     <!-- 推荐封面图 -->
-    <view class="cover">
-      <image
-        src="http://yjy-xiaotuxian-dev.oss-cn-beijing.aliyuncs.com/picture/2021-05-20/84abb5b1-8344-49ae-afc1-9cb932f3d593.jpg"
-      ></image>
-    </view>
+    <view class="cover"> 0 </view>
     <!-- 推荐选项 -->
     <view class="tabs">
       <text class="text active">抢先尝鲜</text>

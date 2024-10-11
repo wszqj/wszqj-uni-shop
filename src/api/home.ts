@@ -1,7 +1,6 @@
 import { http } from '@/utils/http'
 import type {
   Advertisement,
-  AppointmentItem,
   GoodsDetail,
   GoodsListParams,
   GoodsListVO,
