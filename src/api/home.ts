@@ -12,7 +12,14 @@ import type { Appointment } from '@/types/appointment'
 export const getGoodsListAPI = (data?: GoodsListParams) => {
   return http<PageResult<GoodsListVO>>({
     method: 'GET',
-    url: `/goods/like/list?page=${data?.page}&pageSize=${data?.pageSize}&name=${data?.name}`,
+    url: `/goods/like/list?
+    page=${data?.page}
+    &pageSize=${data?.pageSize}
+    &name=${data?.name}
+    &discountId=${data?.discountId}
+    &brandName=${data?.brandName}
+    &categoryName=${data?.categoryName}
+    &discountName=${data?.discountName}`,
     data,
   })
 }

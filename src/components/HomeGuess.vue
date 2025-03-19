@@ -3,12 +3,17 @@
 import { onMounted, ref } from 'vue'
 import type { GoodsListParams, GoodsListVO } from '@/types/home'
 import { getGoodsListAPI } from '@/api/home'
-import { baseImgUrl } from '@/constants'
+import { getFullImageUrl } from '@/constants'
+import MoveLoading from '@/components/MoveLoading.vue'
 // 分页参数
 const pageParam: Required<GoodsListParams> = {
   page: 1,
   pageSize: 10,
   name: '',
+  discountId: '',
+  brandName: '',
+  categoryName: '',
+  discountName: '',
 }
 // 商品列表
 const goodsList = ref<GoodsListVO[]>([])
@@ -22,9 +27,26 @@ const resetData = () => {
 }
 
 // 获取商品列表数据
-const getGoodsList = async () => {
+const getGoodsList = async (param?: GoodsListParams) => {
+  // 判断是否存在参数，若存在则为商品搜索
+  if (param?.brandName != null) {
+    resetData()
+    pageParam.brandName = param?.brandName
+  }
+  if (param?.categoryName != null) {
+    resetData()
+    pageParam.categoryName = param?.categoryName
+  }
+  if (param?.discountName != null) {
+    resetData()
+    pageParam.discountName = param?.discountName
+  }
+  if (param?.name != null) {
+    resetData()
+    pageParam.name = param?.name
+  }
   // 结束判断
-  if (finish.value === true) {
+  if (finish.value) {
     return uni.showToast({
       icon: 'none',
       title: '没有更多数据了~',
@@ -42,9 +64,21 @@ const getGoodsList = async () => {
     finish.value = true
   }
 }
+const loadingStatus = ref(false)
 // 页面加载时获取商品列表数据
 onMounted(() => {
-  getGoodsList()
+  Promise.all([
+    getGoodsList().finally(() => {
+      if (!loadingStatus.value) {
+        return
+      }
+      loadingStatus.value = false
+    }),
+  ])
+  if (!loadingStatus.value) {
+    return
+  }
+  loadingStatus.value = false
 })
 
 // 暴露方法
@@ -55,6 +89,8 @@ defineExpose({
 </script>
 
 <template>
+  <!--  加载动画-->
+  <MoveLoading :loadingStatus="loadingStatus"></MoveLoading>
   <!-- 商品列表 -->
   <view class="caption">
     <text class="text">商品列表</text>
@@ -66,7 +102,7 @@ defineExpose({
       :key="goods.id"
       :url="`/pages/goods/goods?id=${goods.id}`"
     >
-      <image class="image" mode="aspectFill" :src="baseImgUrl + goods.picture"></image>
+      <image class="image" mode="aspectFill" :src="getFullImageUrl(goods.picture)"></image>
       <view class="name"> {{ goods.name }}</view>
       <view class="price">
         <text class="small">¥</text>

@@ -5,6 +5,7 @@ import { ref } from 'vue'
 import { deleteAddressAPI, getAddressListAPI } from '@/api/address'
 import { onShow } from '@dcloudio/uni-app'
 import { useSelectedAddress } from '@/stores/modules/address'
+import MoveLoading from '@/components/MoveLoading.vue'
 
 const addressList = ref<AddressItem[]>([])
 //获取用户收货地址列表
@@ -36,9 +37,21 @@ const onDeleteAddress = (id: string) => {
     },
   })
 }
-
-onShow(() => {
-  getAddressList()
+const loadingStatus = ref(false)
+onShow(async () => {
+  loadingStatus.value = true
+  await Promise.race([
+    getAddressList().finally(() => {
+      if (!loadingStatus.value) {
+        return
+      }
+      loadingStatus.value = false
+    }),
+  ])
+  if (!loadingStatus.value) {
+    return
+  }
+  loadingStatus.value = false
 })
 </script>
 
@@ -81,6 +94,8 @@ onShow(() => {
       </navigator>
     </view>
   </view>
+  <!--  加载动画-->
+  <MoveLoading :loadingStatus="loadingStatus"></MoveLoading>
 </template>
 
 <style lang="scss">

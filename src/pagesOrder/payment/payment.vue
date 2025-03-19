@@ -3,6 +3,7 @@ import { userGuessList } from '@/composables'
 import HomeGuess from '@/components/HomeGuess.vue'
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import MoveLoading from '@/components/MoveLoading.vue'
 
 // 获取页面参数
 const query = defineProps<{
@@ -19,20 +20,25 @@ const splitId = () => {
     if (secondId) {
       // 用户一次购买多个商品
       url.value = `/pagesOrder/list/list`
+      return
     } else {
       // 用户一次购买一个商品
       url.value = `/pagesOrder/detail/detail?id=${query.id}`
+      return
     }
   } catch (error) {
     // 处理可能出现的任何错误
     uni.showToast({ icon: 'none', title: '加载失败' })
     url.value = `/pagesOrder/list/list`
+    return
   }
 }
-
+const loadingStatus = ref(false)
 // 页面加载时执行
-onLoad(() => {
-  splitId()
+onLoad(async () => {
+  loadingStatus.value = true
+  await Promise.all([splitId()])
+  loadingStatus.value = false
 })
 // 猜你喜欢
 const { guessRef, onScrolltolower } = userGuessList()
@@ -57,10 +63,11 @@ const { guessRef, onScrolltolower } = userGuessList()
         </navigator>
       </view>
     </view>
-
     <!-- 猜你喜欢 -->
     <HomeGuess ref="guessRef" />
   </scroll-view>
+  <!--  加载动画-->
+  <MoveLoading :loadingStatus="loadingStatus"></MoveLoading>
 </template>
 
 <style lang="scss">

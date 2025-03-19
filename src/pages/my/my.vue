@@ -7,13 +7,6 @@ import { userGuessList } from '@/composables'
 const baseImgUrl = 'http://localhost:8081'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
-// 订单选项
-const orderTypes = [
-  { type: 1, text: '待付款', icon: 'icon-currency' },
-  { type: 2, text: '待发货', icon: 'icon-gift' },
-  { type: 3, text: '待收货', icon: 'icon-check' },
-  { type: 4, text: '待评价', icon: 'icon-comment' },
-]
 const store = useMemberStore()
 // 调用猜你喜欢组合式函数
 const { guessRef, onScrolltolower } = userGuessList()

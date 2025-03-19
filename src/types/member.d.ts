@@ -25,6 +25,15 @@ export type LoginResult = BaseProfile & {
   /** 登录凭证 */
   token: string
 }
+/** 小程序登录参数 */
+export type LoginParams = {
+  // 临时登录凭证
+  code: string
+  // 登录方式
+  type: string
+  // 手机号
+  phone: string
+}
 
 /** 个人信息 用户详情信息 */
 export type ProfileDetail = BaseProfile & {

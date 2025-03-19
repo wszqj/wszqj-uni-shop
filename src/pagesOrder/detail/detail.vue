@@ -12,8 +12,9 @@ import {
 } from '@/api/order'
 import type { OrderResult, PaymentSlipParams } from '@/types/order'
 import { OrderState, orderStateList } from '@/api/constants'
-import { baseImgUrl } from '@/constants'
+import { baseImgUrl, getFullImageUrl } from '@/constants'
 import uniPopup from '@dcloudio/uni-ui/lib/uni-popup/uni-popup.vue'
+import MoveLoading from '@/components/MoveLoading.vue'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -146,9 +147,22 @@ const onOrderDelete = (orderId: string) => {
     },
   })
 }
+const loadingStatus = ref(false)
 // 加载数据
-onMounted(() => {
-  getOrderDetail()
+onMounted(async () => {
+  loadingStatus.value = true
+  await Promise.race([
+    getOrderDetail().finally(() => {
+      if (!loadingStatus.value) {
+        return
+      }
+      loadingStatus.value = false
+    }),
+  ])
+  if (!loadingStatus.value) {
+    return
+  }
+  loadingStatus.value = false
 })
 
 // 获取页面栈
@@ -241,7 +255,7 @@ onReady(() => {
         <!-- 订单物流信息 -->
         <view v-for="item in 1" :key="item" class="item">
           <view class="message">
-            您已在广州市天河区黑马程序员完成取件，感谢使用菜鸟驿站，期待再次为您服务。
+            您已在商丘市宁陵县巨豪家具完成取件，感谢您对巨豪家具的支持，期待再次为您服务。
           </view>
           <view class="date"> 2023-04-14 13:14:20</view>
         </view>
@@ -262,7 +276,7 @@ onReady(() => {
             :url="`/pages/goods/goods?id=${item.spuId}`"
             hover-class="none"
           >
-            <image class="cover" :src="baseImgUrl + item.image"></image>
+            <image class="cover" :src="getFullImageUrl(item.image)"></image>
             <view class="meta">
               <view class="name ellipsis">{{ item.name }}</view>
               <view class="type">{{ item.attrsText }}</view>
@@ -281,19 +295,30 @@ onReady(() => {
             <navigator url="" class="button"> 去评价</navigator>
           </view>
         </view>
-        <!-- 合计 -->
-        <view class="total">
-          <view class="row">
-            <view class="text">商品总价:</view>
-            <view class="symbol">{{ order.totalMoney }}</view>
+        <!-- 支付金额 -->
+        <view class="settlement">
+          <view class="item">
+            <text class="text">商品总价:</text>
+            <text class="number symbol">{{ order.totalMoney.toFixed(2) }}</text>
           </view>
-          <view class="row">
-            <view class="text">运费:</view>
-            <view class="symbol">{{ order.postFee }}</view>
+          <view v-if="order?.couponVO">
+            <view class="item">
+              <text class="text">优惠价格:</text>
+              <text class="number symbol">
+                {{ order.couponVO.money }} （{{ order.couponVO.title }}）</text
+              >
+            </view>
+            <view class="item">
+              <text class="text">券码: {{ order.couponVO.ticket }}</text>
+            </view>
           </view>
-          <view class="row">
-            <view class="text">应付金额:</view>
-            <view class="symbol primary">{{ order.payMoney }}</view>
+          <view class="item">
+            <text class="text">运费:</text>
+            <text class="number symbol">{{ order.postFee.toFixed(2) }}</text>
+          </view>
+          <view class="item">
+            <text class="text">应付金额:</text>
+            <text class="number symbol">{{ order.payMoney.toFixed(2) }}</text>
           </view>
         </view>
       </view>
@@ -345,6 +370,9 @@ onReady(() => {
         </template>
       </view>
     </template>
+    <template v-else>
+      <view class="blank">订单异常！</view>
+    </template>
   </scroll-view>
   <!-- 取消订单弹窗 -->
   <uni-popup ref="popup" type="bottom" background-color="#fff">
@@ -365,6 +393,8 @@ onReady(() => {
       </view>
     </view>
   </uni-popup>
+  <!--  加载动画-->
+  <MoveLoading :loadingStatus="loadingStatus"></MoveLoading>
 </template>
 
 <style lang="scss">
@@ -801,6 +831,13 @@ page {
       background-color: #27ba9b;
       border: none;
     }
+  }
+
+  .blank {
+    margin-top: 300rpx;
+    text-align: center;
+    font-size: 32rpx;
+    color: #888;
   }
 }
 </style>

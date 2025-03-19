@@ -5,7 +5,7 @@
         <view class="input input">
           <text
             class="icon-search sk-transparent sk-text-14-2857-336 sk-text sk-pseudo sk-pseudo-circle"
-            >小公主</text
+            >沙发</text
           >
         </view>
       </view>
@@ -29,7 +29,7 @@
               >
             </view>
             <view class="section section">
-              <navigator class="goods goods" hover-class="none">
+              <!--              <navigator class="goods goods" hover-class="none">
                 <image class="image sk-image"></image>
                 <view class="name ellipsis sk-transparent sk-text-14-2857-402 sk-text"
                   >Product 1</view
@@ -76,7 +76,7 @@
                   <text class="symbol sk-transparent sk-opacity">¥</text>
                   <text class="number sk-transparent sk-text-14-2857-448 sk-text">1999.00</text>
                 </view>
-              </navigator>
+              </navigator>-->
             </view>
           </view>
           <view class="panel panel">
@@ -89,7 +89,7 @@
               >
             </view>
             <view class="section section">
-              <navigator class="goods goods" hover-class="none">
+              <!--              <navigator class="goods goods" hover-class="none">
                 <image class="image sk-image"></image>
                 <view class="name ellipsis sk-transparent sk-text-14-2857-844 sk-text"
                   >Product 3</view
@@ -136,7 +136,7 @@
                   <text class="symbol sk-transparent sk-opacity">¥</text>
                   <text class="number sk-transparent sk-text-14-2857-170 sk-text">9999999.00</text>
                 </view>
-              </navigator>
+              </navigator>-->
             </view>
           </view>
           <view class="panel panel">

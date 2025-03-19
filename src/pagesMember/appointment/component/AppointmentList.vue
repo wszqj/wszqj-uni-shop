@@ -8,6 +8,7 @@ import {
 } from '@/api/appointment'
 import type { AppointmentItem } from '@/types/home'
 import { onLoad, onShow } from '@dcloudio/uni-app'
+import MoveLoading from '@/components/MoveLoading.vue'
 
 const IS_AGREE = ref(1)
 const IS_VISITED = ref(2)
@@ -25,6 +26,16 @@ const appointmentList = ref<AppointmentItem[]>([])
 const getAppointmentList = async () => {
   const res = await getAppointmentListAPI(props.status)
   appointmentList.value = res.result
+}
+// 刷新动画是否显示
+const isTriggered = ref(false)
+// 下拉刷新
+const onRefresherRefresh = async () => {
+  isTriggered.value = true
+  // 加载数据
+  await getAppointmentList()
+  // 关闭动画
+  isTriggered.value = false
 }
 // 取消预约操作
 const cancelAppointment = () => {
@@ -59,9 +70,12 @@ const confirm = async (id: number, status: number) => {
     show.value = false
   }
 }
+const loadingStatus = ref(false)
 // 加载数据
-onShow(() => {
-  getAppointmentList()
+onShow(async () => {
+  loadingStatus.value = true
+  await Promise.all([getAppointmentList()])
+  loadingStatus.value = false
 })
 // 监听 props.status 的变化
 watch(
@@ -73,46 +87,83 @@ watch(
 </script>
 
 <template>
-  <view v-for="item in appointmentList" :key="item.id">
-    <up-card :title="title" :sub-title="item.time">
-      <template #body>
-        <view class="u-body-item">预约人：{{ item.name }}</view>
-        <view class="u-body-item">联系电话：{{ item.phone }}</view>
-        <view class="u-body-item">预约描述：{{ item.desc }}</view>
-      </template>
-      <template #foot>
-        <view class="custom-style">
-          <view v-show="item.status < IS_VISITED">
-            <up-button type="primary" text="取消预约" @click="cancelAppointment"></up-button>
-          </view>
-          <view v-show="item.status > IS_AGREE">
-            <up-button type="error" text="删除预约" @click="deleteAppointment"></up-button>
-          </view>
+  <scroll-view
+    refresher-enabled="true"
+    scroll-y="true"
+    class="scroll-view"
+    @refresherrefresh="onRefresherRefresh"
+    :refresher-triggered="isTriggered"
+  >
+    <view v-if="appointmentList.length > 0">
+      <view v-for="item in appointmentList" :key="item.id">
+        <up-card :title="title" :sub-title="item.time">
+          <template #body>
+            <view class="u-body-item">预约人：{{ item.name }}</view>
+            <view class="u-body-item">联系电话：{{ item.phone }}</view>
+            <view class="u-body-item">预约描述：{{ item.desc }}</view>
+          </template>
+          <template #foot>
+            <view class="custom-style">
+              <view v-show="item.status < IS_VISITED">
+                <up-button type="primary" text="取消预约" @click="cancelAppointment"></up-button>
+              </view>
+              <view v-show="item.status > IS_AGREE">
+                <up-button type="error" text="删除预约" @click="deleteAppointment"></up-button>
+              </view>
+            </view>
+          </template>
+        </up-card>
+        <view>
+          <up-modal
+            :show="show"
+            :title="modalTitle"
+            @confirm="confirm(item.id, item.status)"
+            @cancel="show = false"
+            :showCancelButton="true"
+            ref="uModal"
+            :zoom="false"
+          ></up-modal>
         </view>
-      </template>
-    </up-card>
-    <view>
-      <up-modal
-        :show="show"
-        :title="modalTitle"
-        @confirm="confirm(item.id, item.status)"
-        @cancel="show = false"
-        :showCancelButton="true"
-        ref="uModal"
-        :zoom="false"
-      ></up-modal>
+      </view>
     </view>
-  </view>
+    <view v-else class="blank">暂无预约信息</view>
+    <!-- 底部占位空盒子 -->
+    <view class="toolbar-height"></view>
+  </scroll-view>
   <up-toast position="top" ref="uToastRef"></up-toast>
+  <!--  加载动画-->
+  <MoveLoading :loadingStatus="loadingStatus"></MoveLoading>
 </template>
 
 <style scoped lang="scss">
+:host {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #f7f7f8;
+}
+
+// 滚动容器
+.scroll-view {
+  flex: 1;
+}
+// 底部占位空盒子
+.toolbar-height {
+  height: 100%;
+}
 .u-body-item {
   font-size: 32rpx;
   color: #333;
   padding: 20rpx 10rpx;
 }
 
+.blank {
+  margin-top: 300rpx;
+  text-align: center;
+  font-size: 32rpx;
+  color: #888;
+}
 .custom-style {
   margin-top: 8rpx;
   margin-right: 8rpx;

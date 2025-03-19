@@ -9,7 +9,8 @@ import {
   getOrderListAPI,
   payOrderAPI,
 } from '@/api/order'
-import { baseImgUrl } from '@/constants'
+import { baseImgUrl, getFullImageUrl } from '@/constants'
+import MoveLoading from '@/components/MoveLoading.vue'
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -84,10 +85,22 @@ const onScrolltolower = async () => {
   finish.value = res.result.pages <= queryParams.page
   queryParams.page++
 }
-
+const loadingStatus = ref(false)
 // 初始化数据
-onMounted(() => {
-  getMemberOrderData()
+onMounted(async () => {
+  loadingStatus.value = true
+  await Promise.race([
+    getMemberOrderData().finally(() => {
+      if (!loadingStatus.value) {
+        return
+      }
+      loadingStatus.value = false
+    }),
+  ])
+  if (!loadingStatus.value) {
+    return
+  }
+  loadingStatus.value = false
 })
 
 // 订单支付
@@ -178,7 +191,7 @@ const onOrderDelete = (orderId: string) => {
         hover-class="none"
       >
         <view class="cover">
-          <image mode="aspectFit" :src="baseImgUrl + order.skuImg"></image>
+          <image mode="aspectFit" :src="getFullImageUrl(order.skuImg)"></image>
         </view>
         <view class="meta">
           <view class="name ellipsis">{{ order.skuName }}</view>
@@ -191,13 +204,13 @@ const onOrderDelete = (orderId: string) => {
         <text>实付</text>
         <text class="amount">
           <text class="symbol">¥</text>
-          {{ order.totalPrice }}
+          {{ order.totalPayPrice }}
         </text>
       </view>
       <!-- 订单操作按钮 -->
       <view class="action">
         <!-- 待付款状态：显示去支付按钮 -->
-        <template v-if="order.orderState === OrderState.DaiFuKuan">
+        <template v-if="order.orderState == OrderState.DaiFuKuan">
           <view class="button primary" @tap="onOrderPay(order.orderId)">去支付</view>
         </template>
         <template v-else>
@@ -209,7 +222,7 @@ const onOrderDelete = (orderId: string) => {
             再次购买
           </navigator>
           <!-- 待收货状态: 展示确认收货 -->
-          <view v-if="order.orderState === OrderState.DaiShouHuo" class="button primary"
+          <view v-if="order.orderState == OrderState.DaiShouHuo" class="button primary"
             >确认收货
           </view>
         </template>
@@ -220,6 +233,8 @@ const onOrderDelete = (orderId: string) => {
       {{ finish || orderList.length === 0 ? '没有更多数据~' : '正在加载...' }}
     </view>
   </scroll-view>
+  <!--  加载动画-->
+  <MoveLoading :loadingStatus="loadingStatus"></MoveLoading>
 </template>
 <style lang="scss">
 // 订单列表

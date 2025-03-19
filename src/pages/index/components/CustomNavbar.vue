@@ -1,6 +1,14 @@
 <script setup lang="ts">
 // 获取屏幕边界到安全区域距离
+import { ref } from 'vue'
+
 const { safeAreaInsets } = uni.getSystemInfoSync()
+// 搜索的内容
+const searchContent = ref()
+
+const searchGoods = () => {
+  console.log('搜索内容：' + searchContent.value)
+}
 </script>
 
 <template>
@@ -12,8 +20,8 @@ const { safeAreaInsets } = uni.getSystemInfoSync()
     </view>
     <!-- 搜索条 -->
     <view class="search">
-      <input class="search-input" placeholder="搜索商品" />
-      <text class="icon-search"></text>
+      <input v-model="searchContent" class="search-input" placeholder="搜索商品" />
+      <text @tap="searchGoods" class="icon-search" style="width: 20px; height: auto"></text>
     </view>
   </view>
 </template>

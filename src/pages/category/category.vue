@@ -5,89 +5,129 @@ import type { CategoryTopItem } from '@/types/category'
 import { getCategoryListAPI } from '@/api/category'
 import { onLoad } from '@dcloudio/uni-app'
 import PageSkeleton from '@/pages/category/component/PageSkeleton.vue'
-import { baseImgUrl } from '@/constants'
+import { baseImgUrl, getFullImageUrl } from '@/constants'
+import MoveLoading from '@/components/MoveLoading.vue'
 
 const categoryList = ref<CategoryTopItem[]>([])
 const activeIndex = ref(0)
+
 // 获取商品分类数据
 const getCategoryList = async () => {
   const res = await getCategoryListAPI()
   categoryList.value = res.result
   console.log(categoryList.value)
 }
-// 是否数据加载完毕
-const isFinish = ref(false)
-
+// 刷新动画是否显示
+const isTriggered = ref(false)
+const loadingStatus = ref(false)
 // 页面加载
 onLoad(async () => {
-  await getCategoryList()
-  isFinish.value = true
+  loadingStatus.value = true
+  await Promise.all([
+    getCategoryList().finally(() => {
+      if (!loadingStatus.value) {
+        return
+      }
+      loadingStatus.value = false
+    }),
+  ])
+  if (!loadingStatus.value) {
+    return
+  }
+  loadingStatus.value = false
 })
 
 // 提取当前二级分类数据
 const subCategoryList = computed(() => {
   return categoryList.value[activeIndex.value]?.children || []
 })
+
+// 下拉刷新
+const onRefresherRefresh = async () => {
+  isTriggered.value = true
+  // 加载数据
+  await getCategoryList()
+  // 关闭动画
+  isTriggered.value = false
+}
 </script>
 
 <template>
-  <view class="viewport" v-if="isFinish">
+  <view class="viewport" v-if="categoryList">
     <!-- 搜索框 -->
     <view class="search">
       <view class="input">
-        <text class="icon-search">小公主</text>
+        <text class="icon-search">沙发</text>
       </view>
     </view>
-    <!-- 分类 -->
-    <view class="categories">
-      <!-- 左侧：一级分类 -->
-      <scroll-view class="primary" scroll-y="true">
-        <view
-          v-for="(item, index) in categoryList"
-          :key="item.id"
-          class="item"
-          :class="{ active: index === activeIndex }"
-          @tap="activeIndex = index"
-        >
-          <text class="name"> {{ item.name }}</text>
-        </view>
-      </scroll-view>
-      <!-- 右侧：二级分类 -->
-      <scroll-view class="secondary" scroll-y="true">
-        <!-- 内容区域 -->
-        <view class="panel" v-for="item in subCategoryList" :key="item.id">
-          <view class="title">
-            <text class="name">{{ item.name }}</text>
-            <navigator class="more" hover-class="none">全部</navigator>
+    <scroll-view
+      refresher-enabled="true"
+      scroll-y="true"
+      class="scroll-view"
+      @refresherrefresh="onRefresherRefresh"
+      :refresher-triggered="isTriggered"
+    >
+      <!-- 分类 -->
+      <view v-if="categoryList" class="categories">
+        <!-- 左侧：一级分类 -->
+        <scroll-view class="primary" scroll-y="true">
+          <view
+            v-for="(item, index) in categoryList"
+            :key="item.id"
+            class="item"
+            :class="{ active: index === activeIndex }"
+            @tap="activeIndex = index"
+          >
+            <text class="name"> {{ item.name }}</text>
           </view>
-          <view class="section">
-            <navigator
-              v-for="goods in item.goods"
-              :key="goods.id"
-              class="goods"
-              hover-class="none"
-              :url="`/pages/goods/goods?id=${goods.id}`"
-            >
-              <image class="image" :src="baseImgUrl + goods.picture"></image>
-              <view class="name ellipsis">{{ goods.name }}</view>
-              <view class="price">
-                <text class="symbol">¥</text>
-                <text class="number">{{ goods.price }}</text>
-              </view>
-            </navigator>
+        </scroll-view>
+        <!-- 右侧：二级分类 -->
+        <scroll-view class="secondary" scroll-y="true">
+          <!-- 内容区域 -->
+          <view class="panel" v-for="item in subCategoryList" :key="item.id">
+            <view class="title">
+              <text class="name">{{ item.name }}</text>
+              <navigator class="more" hover-class="none">全部</navigator>
+            </view>
+            <view class="section">
+              <navigator
+                v-for="goods in item.goods"
+                :key="goods.id"
+                class="goods"
+                hover-class="none"
+                :url="`/pages/goods/goods?id=${goods.id}`"
+              >
+                <image class="image" :src="getFullImageUrl(goods.picture)"></image>
+                <view class="name ellipsis">{{ goods.name }}</view>
+                <view class="price">
+                  <text class="symbol">¥</text>
+                  <text class="number">{{ goods.price }}</text>
+                </view>
+              </navigator>
+            </view>
           </view>
-        </view>
-      </scroll-view>
-    </view>
+        </scroll-view>
+      </view>
+      <view v-else class="blank">暂无商品数据</view>
+    </scroll-view>
   </view>
   <!-- 骨架屏 -->
   <PageSkeleton v-else />
+  <!--  加载动画-->
+  <MoveLoading :loadingStatus="loadingStatus"></MoveLoading>
 </template>
 
 <style lang="scss">
 page {
   height: 100%;
   overflow: hidden;
+}
+
+.blank {
+  margin-top: 300rpx;
+  text-align: center;
+  font-size: 32rpx;
+  color: #888;
 }
 
 .viewport {

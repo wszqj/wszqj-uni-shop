@@ -1,12 +1,12 @@
 import { http } from '@/utils/http'
-import type { LoginResult, ProfileDetail, ProfileParams } from '@/types/member'
+import type { LoginParams, LoginResult, ProfileDetail, ProfileParams } from '@/types/member'
 
 // 用户登录
-export const loginAPI = (phone: string) => {
+export const loginAPI = (data: LoginParams) => {
   return http<LoginResult>({
     method: 'POST',
     url: '/user/login',
-    data: { phone },
+    data,
   })
 }
 

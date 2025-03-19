@@ -55,9 +55,9 @@
       }
     },
     {
-      "path": "pages/hot/hot",
+      "path": "pages/activity/activity",
       "style": {
-        "navigationBarTitleText": "热门推荐"
+        "navigationBarTitleText": "活动内容"
       }
     },
     {

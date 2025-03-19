@@ -9,7 +9,8 @@ import {
 } from '@/api/cart'
 import { useMemberStore } from '@/stores'
 import vkDataInputNumberBox from '@/components/vk-data-input-number-box/vk-data-input-number-box.vue'
-import { baseImgUrl } from '@/constants'
+import { baseImgUrl, getFullImageUrl } from '@/constants'
+import MoveLoading from '@/components/MoveLoading.vue'
 // 获取系统信息
 const { safeAreaInsets } = uni.getSystemInfoSync()
 const safeArea = ref<number>(safeAreaInsets!.bottom)
@@ -61,9 +62,9 @@ const onChangeCount = async (item: CartItem) => {
 const onDeleteAddress = async (id: number) => {
   const res = await deleteCartItemAPI(id)
   if (res.code) {
-    uni.showToast({ icon: 'success', title: res.msg })
+    await uni.showToast({ icon: 'success', title: res.msg })
   } else {
-    uni.showToast({ icon: 'error', title: res.msg })
+    await uni.showToast({ icon: 'error', title: res.msg })
   }
   await getCartList()
 }
@@ -117,11 +118,24 @@ const toBuy = () => {
   // 跳转支付页面
   uni.navigateTo({ url: '/pagesOrder/create/create' })
 }
-
+const loadingStatus = ref(false)
 // 组件显示时触发，进行安全区更新
 onShow(() => {
   updateSafeArea()
-  getCartList()
+  Promise.race([
+    getCartList().finally(() => {
+      // 这里我们只关心是否响应
+      if (!loadingStatus.value) {
+        return
+      }
+      loadingStatus.value = false
+    }),
+  ])
+  // 这里我们只关心是否响应
+  if (!loadingStatus.value) {
+    return
+  }
+  loadingStatus.value = false
 })
 
 // 监听 props.type 的变化，以便在动态变化时也能更新
@@ -135,6 +149,8 @@ watch(
 </script>
 
 <template>
+  <!--  加载动画-->
+  <MoveLoading :loadingStatus="loadingStatus"></MoveLoading>
   <scroll-view
     refresher-enabled="true"
     :refresher-triggered="isTriggered"
@@ -169,7 +185,11 @@ watch(
                 hover-class="none"
                 class="navigator"
               >
-                <image mode="aspectFill" class="picture" :src="baseImgUrl + item.itemImg"></image>
+                <image
+                  mode="aspectFill"
+                  class="picture"
+                  :src="getFullImageUrl(item.itemImg)"
+                ></image>
                 <view class="meta">
                   <view class="name ellipsis">{{ item.goodsName }}</view>
                   <view class="attrsText ellipsis">{{ item.itemAttributeMsg }}</view>

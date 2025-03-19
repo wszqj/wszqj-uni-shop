@@ -22,33 +22,18 @@ export type GoodsListVO = {
 export type GoodsListParams = {
   page?: number
   pageSize?: number
-  name: string
+  name?: string
+  discountId?: string
+  brandName?: string
+  categoryName?: string
+  discountName?: string
 }
 // 轮播图类型
 export type Advertisement = {
   /**
-   * 序号
-   */
-  id: string
-  /**
-   * 图片
+   * 图片路径
    */
   url: string
-
-  /**
-   * 创建时间
-   */
-  createdAt: string
-
-  /**
-   * 图片描述
-   */
-  des: string
-
-  /**
-   * 状态
-   */
-  status: number
 }
 export type AppointmentItem = {
   id: number

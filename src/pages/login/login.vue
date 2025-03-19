@@ -2,11 +2,34 @@
 //模拟登录
 import { loginAPI } from '@/api/user'
 import { useMemberStore } from '@/stores'
-import type { LoginResult } from '@/types/member'
+import type { LoginParams, LoginResult } from '@/types/member'
+import { onLoad } from '@dcloudio/uni-app'
+import { ref } from 'vue'
+// 临时登录凭证
+const code = ref('')
+// 获取临时登录凭证
+onLoad(async () => {
+  const res = await wx.login()
+  code.value = res.code
+})
+// 登录参数
+const loginParams = ref<LoginParams>({} as LoginParams)
 
-const login = async () => {
+// 调用微信接口登录
+const loginByWx = async () => {
+  loginParams.value.type = 'wx'
+  loginParams.value.code = code.value
   // 调用接口
-  let res = await loginAPI('16696520022')
+  let res = await loginAPI(loginParams.value)
+  loginSuccess(res.result)
+}
+
+// 调用模拟接口登录
+const loginSimulation = async () => {
+  loginParams.value.type = 'simulation'
+  loginParams.value.phone = '16696520022'
+  // 调用接口
+  let res = await loginAPI(loginParams.value)
   loginSuccess(res.result)
 }
 
@@ -15,7 +38,6 @@ const loginSuccess = (profile: LoginResult) => {
   const memberStore = useMemberStore()
   // 保存会员信息
   memberStore.setProfile(profile)
-  console.log(profile)
   // 提示
   uni.showToast({ icon: 'success', title: '登陆成功' })
   //  延迟任务
@@ -32,14 +54,10 @@ const loginSuccess = (profile: LoginResult) => {
       <image src="../../static/images/home_logo2.png"></image>
     </view>
     <view class="login">
-      <!-- 网页端表单登录 -->
-      <!-- <input class="input" type="text" placeholder="请输入用户名/手机号码" /> -->
-      <!-- <input class="input" type="text" password placeholder="请输入密码" /> -->
-      <!-- <button class="button phone">登录</button> -->
       <!-- 小程序端授权登录 -->
-      <button class="button phone">
+      <button class="button phone" @tap="loginByWx()">
         <text class="icon icon-phone"></text>
-        手机号快捷登录
+        微信授权登录
       </button>
       <view class="extra">
         <view class="caption">
@@ -47,7 +65,7 @@ const loginSuccess = (profile: LoginResult) => {
         </view>
         <view class="options">
           <!-- 通用模拟登录 -->
-          <button @tap="login">
+          <button @tap="loginSimulation()">
             <text class="icon icon-phone">模拟快捷登录</text>
           </button>
         </view>

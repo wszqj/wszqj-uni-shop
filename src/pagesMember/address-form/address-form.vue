@@ -2,8 +2,10 @@
 import { ref } from 'vue'
 import { addAddressAPI, getAddressAPI, updateAddressAPI } from '@/api/address'
 import { onShow } from '@dcloudio/uni-app'
+import MoveLoading from '@/components/MoveLoading.vue'
 // 表单组件实例
 const formRef = ref()
+const isDefault = ref(false)
 // 表单数据
 const form = ref({
   id: '',
@@ -13,9 +15,14 @@ const form = ref({
   address: '', // 详细地址
   status: 0, // 是否默认 (0: 否, 1: 是)
 })
-// 默认地址修改
+/*// 默认地址修改
 const onSwitchChange: UniHelper.SwitchOnChange = (ev) => {
   form.value.status = ev.detail.value ? 1 : 0
+}*/
+// 默认地址修改
+const onSwitchChange = (status: boolean) => {
+  isDefault.value = status
+  form.value.status = status ? 1 : 0
 }
 // 校验规则
 const rules = {
@@ -96,12 +103,25 @@ const getAddressInfo = async () => {
     const res = await getAddressAPI(query.id)
     // 赋值
     form.value = res.result
+    isDefault.value = form.value.status == 1
   }
 }
-
+const loadingStatus = ref(false)
 // 加载数据
-onShow(() => {
-  getAddressInfo()
+onShow(async () => {
+  loadingStatus.value = true
+  await Promise.race([
+    getAddressInfo().finally(() => {
+      if (!loadingStatus.value) {
+        return
+      }
+      loadingStatus.value = false
+    }),
+  ])
+  if (!loadingStatus.value) {
+    return
+  }
+  loadingStatus.value = false
 })
 </script>
 
@@ -135,17 +155,19 @@ onShow(() => {
       </view>
       <view class="form-item">
         <label class="label">设为默认地址</label>
-        <switch
-          @change="onSwitchChange"
+        <up-switch
+          @change="onSwitchChange(isDefault)"
           class="switch"
-          color="#27ba9b"
-          :checked="form.status === 1"
+          activeColor="#27ba9b"
+          v-model="isDefault"
         />
       </view>
     </form>
   </view>
   <!-- 提交按钮 -->
   <button class="button" @tap="onSubmit">保存并使用</button>
+  <!--  加载动画-->
+  <MoveLoading :loadingStatus="loadingStatus"></MoveLoading>
 </template>
 
 <style lang="scss">

@@ -6,6 +6,7 @@ export type OrderPreResult = {
   goods: OrderPreGoods[]
   /** 结算信息 */
   summary: {
+    couponVO: CouponVO
     /** 商品总价 */
     totalPrice: number
     /** 邮费 */
@@ -16,7 +17,13 @@ export type OrderPreResult = {
   /** 用户地址列表 [ 地址信息 ] */
   userAddresses: AddressItem[]
 }
-
+/* 优惠券信息*/
+export type CouponVO = {
+  id: number
+  money: number
+  ticket: string
+  title: string
+}
 /** 商品信息 */
 export type OrderPreGoods = {
   /** 属性文字，例如“颜色:瓷白色 尺寸：8寸” */
@@ -49,6 +56,14 @@ export type OrderCreateParams = {
   deliveryTimeType: number
   /** 订单备注 */
   buyMsg: string
+  /** 优惠券Id  (可选参数)*/
+  couponId?: number
+  /** 商品总价 */
+  totalPrice: number
+  /** 邮费 */
+  postFee: number
+  /** 应付金额 */
+  totalPayPrice: number
   /** 商品集合[ 商品信息 ] */
   goods: {
     /** 数量 */
@@ -91,6 +106,8 @@ export type OrderResult = {
   postFee: number
   /** 应付金额 */
   payMoney: number
+  /** 优惠信息 */
+  couponVO: CouponVO
 }
 
 /** 商品信息 */
@@ -178,7 +195,7 @@ export type OrderItem = {
   // 订单状态
   orderState: number
   // 商品总价
-  totalPrice: number
+  totalPayPrice: number
 }
 export type PaymentSlipParams = {
   // 支付单号

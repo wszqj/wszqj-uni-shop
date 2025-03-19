@@ -9,8 +9,9 @@ import type {
   SkuPopupLocaldata,
 } from '@/components/vk-data-goods-sku-popup/vk-data-goods-sku-popup'
 import { onShow } from '@dcloudio/uni-app'
-import { baseImgUrl } from '@/constants'
+import { baseImgUrl, getFullImageUrl } from '@/constants'
 import { addShoppingCartItemAPI } from '@/api/cart'
+import MoveLoading from '@/components/MoveLoading.vue'
 // 获取系统信息
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -39,7 +40,7 @@ const skuRef = ref<SkuPopupInstanceType>()
 // 处理点击图片预览
 const onTapImage = (url: string) => {
   uni.previewImage({
-    current: baseImgUrl + url,
+    current: getFullImageUrl(url),
     urls: goodsDetail.value!.mainVideos,
   })
 }
@@ -57,7 +58,7 @@ const getGoodsDetail = async () => {
     localData.value = {
       _id: res.result.id,
       name: res.result.name,
-      goods_thumb: baseImgUrl + res.result.mainVideos[0],
+      goods_thumb: getFullImageUrl(res.result.mainVideos[0]),
       spec_list: res.result.specs.map((v) => {
         return {
           name: v.name,
@@ -68,7 +69,7 @@ const getGoodsDetail = async () => {
         _id: v.id,
         goods_id: res.result.id,
         goods_name: res.result.name,
-        image: baseImgUrl + v.pictures,
+        image: getFullImageUrl(v.pictures),
         price: v.price * 100,
         stock: v.stock,
         sku_name_arr: v.attributes,
@@ -102,10 +103,10 @@ const selectArrText = computed(() => {
 const addShoppingCartItem = async (ev: SkuPopupEvent) => {
   const res = await addShoppingCartItemAPI(ev._id, ev.buy_num)
   if (res.code == '0') {
-    uni.showToast({ icon: 'none', title: res.msg ? res.msg : '添加失败' })
+    await uni.showToast({ icon: 'none', title: res.msg ? res.msg : '添加失败' })
   }
   // 成功提示
-  uni.showToast({ icon: 'none', title: res.msg ? res.msg : '添加成功' })
+  await uni.showToast({ icon: 'none', title: res.msg ? res.msg : '添加成功' })
   // 隐藏sku组件
   isShowSKU.value = false
 }
@@ -114,10 +115,22 @@ const onBuyNow = (ev: SkuPopupEvent) => {
   uni.navigateTo({ url: `/pagesOrder/create/create?skuId=${ev._id}&count=${ev.buy_num}` })
   isShowSKU.value = false
 }
-
+const loadingStatus = ref(false)
 // 组件显示时加载数据
-onShow(() => {
-  getGoodsDetail()
+onShow(async () => {
+  loadingStatus.value = true
+  await Promise.all([
+    getGoodsDetail().finally(() => {
+      if (!loadingStatus.value) {
+        return
+      }
+      loadingStatus.value = false
+    }),
+  ])
+  if (!loadingStatus.value) {
+    return
+  }
+  loadingStatus.value = false
 })
 </script>
 
@@ -145,7 +158,7 @@ onShow(() => {
       <view class="preview">
         <swiper @change="onChange" circular>
           <swiper-item v-for="item in goodsDetail?.mainVideos" :key="item">
-            <image mode="aspectFill" :src="baseImgUrl + item" @tap="onTapImage(item)" />
+            <image mode="aspectFill" :src="getFullImageUrl(item)" @tap="onTapImage(item)" />
           </swiper-item>
         </swiper>
         <view class="indicator">
@@ -231,6 +244,8 @@ onShow(() => {
       <view class="buynow" @tap="openSku(SkuMode.BUY)"> 立即购买</view>
     </view>
   </view>
+  <!--  加载动画-->
+  <MoveLoading :loadingStatus="loadingStatus"></MoveLoading>
 </template>
 
 <style lang="scss">

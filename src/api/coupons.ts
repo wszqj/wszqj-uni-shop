@@ -1,6 +1,5 @@
 import { http } from '@/utils/http'
-import type { CouponItem } from '@/types/coupon'
-
+import type { CouponItem, CouponQuery } from '@/types/coupon'
 // 查询在售或可领取的优惠券
 export const getCouponListAPI = () => {
   return http<CouponItem[]>({
@@ -10,10 +9,11 @@ export const getCouponListAPI = () => {
 }
 
 // 领取优惠券
-export const receiveCouponAPI = (id: number) => {
+export const receiveCouponAPI = (data: CouponQuery) => {
   return http({
     method: 'POST',
-    url: `/coupon/receive?id=${id}`,
+    url: `/coupon/receive`,
+    data,
   })
 }
 

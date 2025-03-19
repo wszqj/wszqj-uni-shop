@@ -1,6 +1,6 @@
 export type CouponItem = {
   // 优惠券ID
-  id: number // 或者使用特定的类型，如 number | null | undefined，根据具体需求
+  id: string // 或者使用特定的类型，如 number | null | undefined，根据具体需求
   // 店铺名称
   sellerName: string
   // 可低金额
@@ -17,4 +17,11 @@ export type CouponItem = {
   beginTime: string
   // 优惠券状态
   status: number
+}
+
+export type CouponQuery = {
+  // 优惠券ID
+  couponId: string // 或者使用特定的类型，如 number | null | undefined，根据具体需求
+  // 券码
+  ticket: string
 }

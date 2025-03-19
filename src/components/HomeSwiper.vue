@@ -2,14 +2,14 @@
 import { computed } from 'vue'
 import type { Advertisement } from '@/types/home'
 
-import { baseImgUrl } from '@/constants'
+import { baseImgUrl, getFullImageUrl } from '@/constants'
 // 轮播图列表
 let props = defineProps<{
   list: Advertisement[]
 }>()
 const ADList = computed(() => {
   return props.list.map((item) => {
-    return baseImgUrl + item.url
+    return getFullImageUrl(item.url)
   })
 })
 // 同时显示的滑块数量
@@ -24,10 +24,10 @@ const items = ADList.value.length - 1
       nextMargin="30"
       circular
       :displayMultipleItems="items"
-      height="150"
       :autoplay="true"
       radius="5"
       bgColor="#ffffff"
+      height="200"
     ></u-swiper>
   </view>
 </template>
@@ -35,7 +35,7 @@ const items = ADList.value.length - 1
 <style lang="scss">
 :host {
   display: block;
-  height: 300rpx;
+  height: 205px;
 }
 
 /* 轮播图 */

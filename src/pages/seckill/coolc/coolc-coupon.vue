@@ -7,8 +7,8 @@ import { receiveCouponAPI } from '@/api/coupons'
 const uToastRef = ref()
 
 // 领取优惠券
-const receiveCoupon = async (id: number) => {
-  const res = await receiveCouponAPI(id)
+const receiveCoupon = async (couponId: string, ticket: string) => {
+  const res = await receiveCouponAPI({ couponId, ticket })
   // 处理领取失败的情况
   if (res.code != '0') {
     return uToastRef.value.show({ message: res.msg ? res.msg : '领取失败', type: 'error' })
@@ -46,7 +46,7 @@ defineProps<{
       class="get-btn"
       v-if="!types"
       :style="{ color: color, borderColor: color, backgroundColor: solid }"
-      @tap="receiveCoupon(item.id)"
+      @tap="receiveCoupon(item.id, item.ticket)"
       >立即领取
     </navigator>
     <navigator
@@ -91,7 +91,7 @@ defineProps<{
       width: 100%;
       height: 50upx;
       line-height: 50upx;
-      font-size: 24upx;
+      font-size: 18upx;
       color: #999999;
     }
 

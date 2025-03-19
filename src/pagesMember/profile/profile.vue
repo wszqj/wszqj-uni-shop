@@ -5,6 +5,7 @@ import type { Gender, ProfileDetail, ProfileParams } from '@/types/member'
 import { ref } from 'vue'
 import { getProfileDetailAPI, updateProfileAPI } from '@/api/user'
 import { onLoad } from '@dcloudio/uni-app'
+import MoveLoading from '@/components/MoveLoading.vue'
 
 const baseImgUrl = 'http://localhost:8081'
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -94,7 +95,6 @@ const getProfileDetail = async () => {
   const res = await getProfileDetailAPI()
   // 数据回显
   profile.value = res.result
-  console.log(profile.value)
 }
 // 更新用户年龄
 const onBirthdayChange: UniHelper.DatePickerOnChange = (ev) => {
@@ -108,7 +108,6 @@ const onFullLocationChange: UniHelper.RegionPickerOnChange = (ev) => {
 // 更新用户性别
 const onGenderChange: UniHelper.RadioGroupOnChange = (ev) => {
   profile.value.gender = ev.detail.value as Gender
-  console.log(ev.detail.value as Gender)
 }
 // 修改参数
 const profileParams = ref<ProfileParams>()
@@ -149,10 +148,12 @@ const onSubmit = async () => {
     uni.navigateBack()
   }, 300)
 }
-
+const loadingStatus = ref(false)
 // 数据回显
-onLoad(() => {
-  getProfileDetail()
+onLoad(async () => {
+  loadingStatus.value = true
+  await Promise.all([getProfileDetail()])
+  loadingStatus.value = false
 })
 </script>
 
@@ -226,6 +227,8 @@ onLoad(() => {
       <button class="form-button" @tap="onSubmit">保 存</button>
     </view>
   </view>
+  <!--  加载动画-->
+  <MoveLoading :loadingStatus="loadingStatus"></MoveLoading>
 </template>
 
 <style lang="scss">

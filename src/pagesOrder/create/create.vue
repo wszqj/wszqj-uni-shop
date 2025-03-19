@@ -4,7 +4,8 @@ import { buyNowAPI, createOrderAPI, getOrderPreAgainAPI, getOrderPreAPI } from '
 import { onLoad } from '@dcloudio/uni-app'
 import type { OrderPreResult } from '@/types/order'
 import { useSelectedAddress } from '@/stores/modules/address'
-import { baseImgUrl } from '@/constants'
+import { baseImgUrl, getFullImageUrl } from '@/constants'
+import MoveLoading from '@/components/MoveLoading.vue'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -18,6 +19,7 @@ const deliveryList = ref([
 ])
 // 当前配送时间下标
 const activeIndex = ref(0)
+const loadingStatus = ref(false)
 // 当前配送时间
 const activeDelivery = computed(() => deliveryList.value[activeIndex.value])
 // 修改配送时间
@@ -71,6 +73,10 @@ const createOrder = async () => {
   const createOrderResponse = await createOrderAPI({
     addressId: selectedAddress.value.id,
     buyMsg: buyerMessage.value,
+    couponId: orderPre.value!.summary?.couponVO ? orderPre.value!.summary?.couponVO?.id : undefined, // 设置成非必须参数
+    totalPrice: orderPre.value!.summary?.totalPrice,
+    totalPayPrice: orderPre.value!.summary?.totalPayPrice,
+    postFee: orderPre.value!.summary?.postFee,
     deliveryTimeType: activeDelivery.value.type,
     goods: orderPre.value!.goods.map((item) => ({ count: item.count, skuId: item.skuId })),
     payChannel: 2,
@@ -85,24 +91,46 @@ const createOrder = async () => {
   }
   // 获取订单 ID
   const orderId = createOrderResponse.result
+  // 开启过渡动画
+  loadingStatus.value = true
   // 跳转到订单支付详情页面并关闭当前页面
-  return uni.redirectTo({ url: `/pagesOrder/detail/detail?id=${orderId}` })
+  setTimeout(() => {
+    // 关闭过渡动画
+    loadingStatus.value = false
+    // 跳转订单详情页
+    return uni.redirectTo({ url: `/pagesOrder/detail/detail?id=${orderId}` })
+  }, 500)
 }
 
 // 加载数据
-onLoad(() => {
-  getOrderPre()
+onLoad(async () => {
+  // 开启过渡动画
+  loadingStatus.value = true
+  // 加载数据
+  await Promise.race([
+    getOrderPre().finally(() => {
+      if (!loadingStatus.value) {
+        return
+      }
+      loadingStatus.value = false
+    }),
+  ])
+  // 关闭过渡动画
+  if (!loadingStatus.value) {
+    return
+  }
+  loadingStatus.value = false
 })
 </script>
 
 <template>
-  <scroll-view scroll-y class="viewport">
+  <scroll-view scroll-y="true" class="viewport">
     <!-- 收货地址 -->
     <navigator
       v-if="selectedAddress"
       class="shipment"
       hover-class="none"
-      url="/pagesMember/address/address?from=order"
+      :url="`/pagesMember/address/address?from=order`"
     >
       <view class="user"> {{ selectedAddress.consignee }} {{ selectedAddress.phone }}</view>
       <view class="address"> {{ selectedAddress.fullLocation }} {{ selectedAddress.address }}</view>
@@ -112,7 +140,7 @@ onLoad(() => {
       v-else
       class="shipment"
       hover-class="none"
-      url="/pagesMember/address/address?from=order"
+      :url="`/pagesMember/address/address?from=order`"
     >
       <view class="address"> 请选择收货地址</view>
       <text class="icon icon-right"></text>
@@ -127,7 +155,7 @@ onLoad(() => {
         class="item"
         hover-class="none"
       >
-        <image class="picture" :src="baseImgUrl + goods.image" />
+        <image class="picture" :src="getFullImageUrl(goods.image)" />
         <view class="meta">
           <view class="name ellipsis"> {{ goods.name }}</view>
           <view class="attrs">{{ goods.attrsText }}</view>
@@ -163,11 +191,26 @@ onLoad(() => {
     <view class="settlement">
       <view class="item">
         <text class="text">商品总价:</text>
-        <text class="number symbol">{{ orderPre?.summary.totalPayPrice.toFixed(2) }}</text>
+        <text class="number symbol">{{ orderPre?.summary.totalPrice.toFixed(2) }}</text>
+      </view>
+      <view v-if="orderPre?.summary.couponVO">
+        <view class="item">
+          <text class="text">优惠价格:</text>
+          <text class="number symbol">
+            {{ orderPre?.summary.couponVO.money }} （{{ orderPre?.summary.couponVO.title }}）
+          </text>
+        </view>
+        <view class="item">
+          <text class="text">券码: {{ orderPre?.summary.couponVO.ticket }}</text>
+        </view>
       </view>
       <view class="item">
         <text class="text">运费:</text>
         <text class="number symbol">{{ orderPre?.summary.postFee }}</text>
+      </view>
+      <view class="item">
+        <text class="text">应付金额:</text>
+        <text class="number symbol">{{ orderPre?.summary.totalPayPrice.toFixed(2) }}</text>
       </view>
     </view>
   </scroll-view>
@@ -185,6 +228,8 @@ onLoad(() => {
       提交订单
     </view>
   </view>
+  <!--  加载动画-->
+  <MoveLoading :loadingStatus="loadingStatus"></MoveLoading>
 </template>
 
 <style lang="scss">
